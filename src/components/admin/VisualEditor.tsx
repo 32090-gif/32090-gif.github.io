@@ -34,7 +34,7 @@ const VisualEditor = () => {
     {
       id: 'hero-title',
       type: 'text',
-      content: 'ยินดีต้อนรับสู่ Slumzick',
+      content: 'ยินดีต้อนรับสู่ Kunlun',
       styles: { 
         fontSize: '2.5rem', 
         fontWeight: 'bold', 
