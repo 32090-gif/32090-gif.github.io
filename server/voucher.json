@@ -1,0 +1,52 @@
+{
+  "vouchers": [
+    {
+      "id": "VOUCHER001",
+      "code": "WELCOME50",
+      "description": "ยินดีต้อนรับสมาชิกใหม่",
+      "discount": 50,
+      "type": "amount",
+      "minAmount": 100,
+      "maxUsage": 100,
+      "used": 0,
+      "expiry": "2026-03-31T23:59:59.999Z",
+      "active": true
+    },
+    {
+      "id": "VOUCHER002", 
+      "code": "SAVE20",
+      "description": "ลดทันที 20%",
+      "discount": 20,
+      "type": "percent",
+      "minAmount": 200,
+      "maxUsage": 500,
+      "used": 15,
+      "expiry": "2026-12-31T23:59:59.999Z",
+      "active": true
+    },
+    {
+      "id": "VOUCHER003",
+      "code": "FREESHIP",
+      "description": "ฟรีค่าจัดส่ง",
+      "discount": 100,
+      "type": "shipping",
+      "minAmount": 300,
+      "maxUsage": 200,
+      "used": 45,
+      "expiry": "2026-06-30T23:59:59.999Z",
+      "active": true
+    },
+    {
+      "id": "VOUCHER004",
+      "code": "FLASH100",
+      "description": "Flash Sale ลด 100 บาท",
+      "discount": 100,
+      "type": "amount",
+      "minAmount": 500,
+      "maxUsage": 50,
+      "used": 32,
+      "expiry": "2026-02-15T23:59:59.999Z",
+      "active": true
+    }
+  ]
+}
