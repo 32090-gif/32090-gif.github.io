@@ -1,0 +1,59 @@
+{
+  "users": [
+    {
+      "id": "18d6159e-c977-4644-b0c0-2fd6bf8ddb80",
+      "username": "testuser",
+      "email": "test@example.com",
+      "password": "$2a$10$JZXHSuwCxZSOTGRCOqE1MeLivjYGu23dOBnCwec9K0tqh6Q2V2B3u",
+      "firstName": "Test",
+      "lastName": "User",
+      "pin": "1234",
+      "points": 1,
+      "createdAt": "2026-02-08T13:18:46.333Z",
+      "updatedAt": "2026-02-09T16:09:46.718Z"
+    },
+    {
+      "id": "1c6d0c1d-6e85-457c-9fd0-de871b7818f9",
+      "username": "TBSkyen",
+      "email": "TBSkyen@example.com",
+      "password": "$2a$10$YHpjAkvOOVEoZ1XHuU5s3e.g.GYgRhG1WscIvQtPT2mWUoelEQYnm",
+      "firstName": "TBSkyen",
+      "lastName": "User",
+      "pin": "341234",
+      "points": 9495969,
+      "createdAt": "2026-02-08T13:23:53.285Z",
+      "updatedAt": "2026-02-09T16:23:28.540Z"
+    },
+    {
+      "id": "4c8e1235-d15b-4839-8ee0-3c3916f3298c",
+      "username": "admin",
+      "email": "admin@test.com",
+      "password": "$2a$10$f58TYM8uiI6zEeeqQ9dqruVCR2U.SgQPorznwW4EiQ2UZPH0qCeRK",
+      "firstName": "Admin",
+      "lastName": "User",
+      "pin": "1234",
+      "points": 10000,
+      "createdAt": "2026-02-08T17:29:16.558Z"
+    },
+    {
+      "id": "9cb441a0-8167-4bcd-928d-11e8095987c8",
+      "username": "Admin",
+      "email": "Admin@example.com",
+      "password": "$2a$10$QIagIetgIRuiHwJvvK6uv.HbAMnO0CWdBP/gsAssKuzSU4jeqQdZi",
+      "firstName": "Admin",
+      "lastName": "User",
+      "pin": "341234",
+      "createdAt": "2026-02-08T17:59:26.729Z"
+    },
+    {
+      "id": "5a1acf88-dcf1-412f-b613-c97f30163d1b",
+      "username": "Kuyraisus",
+      "email": "Kuyraisus@example.com",
+      "password": "$2a$10$HJ4Dkf6fiy0OrQcjiNgQweoR2zEk9aX0io0D7/x4mxiY7NWvht8.e",
+      "firstName": "Kuyraisus",
+      "lastName": "User",
+      "pin": "341234",
+      "createdAt": "2026-02-10T16:37:52.870Z"
+    }
+  ]
+}
