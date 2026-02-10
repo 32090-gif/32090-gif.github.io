@@ -1,7 +1,11 @@
 // API Client for Kunlun Backend
+// For development with cloudflared, set VITE_API_BASE_URL environment variable
+// or update the URL here after starting cloudflared tunnel
+const CLOUDFLARED_URL = 'https://partner-davis-lamp-tiny.trycloudflare.com/api'; // Update this when tunnel starts
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (
   import.meta.env.MODE === 'production' 
-    ? 'https://your-api-server.railway.app/api'  // เปลี่ยนเป็น URL ของ API server ที่ deploy แล้ว
+    ? CLOUDFLARED_URL  // Cloudflared tunnel URL
     : 'http://localhost:3001/api'
 );
 

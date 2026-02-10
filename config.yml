@@ -1,0 +1,7 @@
+tunnel: a0b83939-c4eb-47ca-857f-3c142b3a0ca9
+credentials-file: C:\Users\User\.cloudflared\a0b83939-c4eb-47ca-857f-3c142b3a0ca9.json
+
+ingress:
+  - hostname: api.getkunlun.me
+    service: http://localhost:3001
+  - service: http_status:404
