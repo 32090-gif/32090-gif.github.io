@@ -7,6 +7,7 @@ import { getToken, getCurrentUser } from "@/services/authService";
 import { toast } from "sonner";
 import PurchaseConfirmDialog from "@/components/PurchaseConfirmDialog";
 import PurchaseSuccessDialog from "@/components/PurchaseSuccessDialog";
+import { mockProducts } from "@/services/mockData";
 
 const FeaturedProducts = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -62,9 +63,14 @@ const FeaturedProducts = () => {
         if (data.success && data.products) {
           setProducts(data.products.slice(0, 6));
         }
+      } else {
+        throw new Error('API not available');
       }
     } catch (error) {
       console.error('Error fetching products:', error);
+      // Use mock data as fallback
+      console.log('Using mock data as fallback');
+      setProducts(mockProducts.slice(0, 6));
     } finally {
       setLoading(false);
     }

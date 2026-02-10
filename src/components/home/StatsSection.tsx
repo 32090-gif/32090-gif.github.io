@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Users, ShoppingBag, Package, TrendingUp } from "lucide-react";
 import apiClient from "@/services/apiClient";
+import { mockStats } from "@/services/mockData";
 
 interface Stats {
   totalUsers: number;
@@ -25,10 +26,14 @@ const StatsSection = () => {
       const response = await apiClient.makeRequest('/topups/stats');
       if (response.success && (response as any).stats) {
         setStats((response as any).stats);
+      } else {
+        throw new Error('API not available');
       }
     } catch (error) {
       console.error('Error loading stats:', error);
-      // Keep default values if API fails
+      // Use mock data as fallback
+      console.log('Using mock stats data');
+      setStats(mockStats);
     } finally {
       setLoading(false);
     }

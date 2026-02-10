@@ -1,5 +1,9 @@
 // API Client for Kunlun Backend
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (
+  import.meta.env.MODE === 'production' 
+    ? 'https://your-api-server.railway.app/api'  // เปลี่ยนเป็น URL ของ API server ที่ deploy แล้ว
+    : 'http://localhost:3001/api'
+);
 
 interface RegisterData {
   username: string;
