@@ -1,13 +1,23 @@
 // API Client for Kunlun Backend
 // For development with cloudflared, set VITE_API_BASE_URL environment variable
 // or update the URL here after starting cloudflared tunnel
-const CLOUDFLARED_URL = 'https://partner-davis-lamp-tiny.trycloudflare.com/api'; // Update this when tunnel starts
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (
-  import.meta.env.MODE === 'production' 
-    ? CLOUDFLARED_URL  // Cloudflared tunnel URL
-    : 'http://localhost:3001/api'
-);
+// Dynamic API URL detection
+const getAPIBaseURL = (): string => {
+  // If environment variable is set, use it
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Force all requests to use https://getkunlun.me/api
+  return 'https://getkunlun.me/api';
+};
+
+const API_BASE_URL = getAPIBaseURL();
+
+console.log('🔗 API Base URL:', API_BASE_URL);
+console.log('🌐 Current host:', window.location.host);
+console.log('🏗️ Build mode:', import.meta.env.MODE);
 
 interface RegisterData {
   username: string;
@@ -50,7 +60,7 @@ class ApiClient {
     if (!this.token) return false;
     
     try {
-      const response = await fetch('/api/user/points', {
+      const response = await fetch(`${API_BASE_URL}/user/points`, {
         headers: {
           'Authorization': `Bearer ${this.token}`
         }

@@ -74,7 +74,7 @@ const Products = () => {
     try {
       const token = getToken();
       if (token) {
-        const response = await fetch('/api/user/points', {
+        const response = await fetch('https://getkunlun.me/api/user/points', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -93,7 +93,7 @@ const Products = () => {
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/products');
+      const response = await fetch('https://getkunlun.me/api/products');
       if (response.ok) {
         const data = await response.json();
         
@@ -150,7 +150,7 @@ const Products = () => {
 
     const token = getToken();
     try {
-      const response = await fetch('/api/purchase', {
+      const response = await fetch('https://getkunlun.me/api/purchase', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

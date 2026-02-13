@@ -168,7 +168,7 @@ const VisualEditor: React.FC = () => {
   // Save to backend
   const savePageData = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/pages', {
+      const response = await fetch('https://getkunlun.me/api/admin/pages', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

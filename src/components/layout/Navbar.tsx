@@ -74,7 +74,7 @@ const Navbar = () => {
   const fetchUserPoints = async () => {
     try {
       const token = getToken();
-      const response = await fetch('/api/user/points', {
+      const response = await fetch('https://getkunlun.me/api/user/points', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

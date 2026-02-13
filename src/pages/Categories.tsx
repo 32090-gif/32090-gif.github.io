@@ -30,7 +30,7 @@ const Categories = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/products');
+      const response = await fetch('https://getkunlun.me/api/products');
       const data = await response.json();
       
       if (data.success && data.products) {

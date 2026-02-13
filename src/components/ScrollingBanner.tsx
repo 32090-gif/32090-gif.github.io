@@ -9,7 +9,7 @@ const ScrollingBanner = () => {
 
   const fetchAnnouncements = async () => {
     try {
-      const response = await fetch('/api/announcements');
+      const response = await fetch('https://getkunlun.me/api/announcements');
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.announcements) {

@@ -189,7 +189,7 @@ const Admin = () => {
 
   const loadAnnouncements = async () => {
     try {
-      const response = await fetch('/api/announcements');
+      const response = await fetch('https://getkunlun.me/api/announcements');
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.announcements) {
@@ -205,7 +205,7 @@ const Admin = () => {
   const saveAnnouncements = async () => {
     try {
       const messages = announcementText.split('\n').filter(line => line.trim());
-      const response = await fetch('/api/announcements', {
+      const response = await fetch('https://getkunlun.me/api/announcements', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

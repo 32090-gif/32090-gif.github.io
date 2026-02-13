@@ -79,6 +79,53 @@ npm run build
 
 ## การ Deploy
 
+### การ Deploy บน VPS
+
+1. **Upload โปรเจค** ไปยัง VPS ของคุณ
+
+2. **ตั้งค่า Environment Variable** (หากจำเป็น):
+   ```bash
+   # สร้าง .env.production file และตั้งค่า API URL
+   echo "VITE_API_BASE_URL=http://YOUR_VPS_IP:3001/api" > .env.production
+   
+   # หรือใช้ domain name
+   echo "VITE_API_BASE_URL=http://yourdomain.com:3001/api" > .env.production
+   ```
+
+3. **Build และรันโปรเจค**:
+   ```bash
+   # Install dependencies
+   npm install
+   cd server && npm install && cd ..
+   
+   # Build frontend for production
+   npm run build
+   
+   # Start server (รัน backend และ serve frontend)
+   npm start
+   ```
+
+4. **เข้าถึงเว็บไซต์**:
+   - เว็บไซต์จะทำงานที่: `http://YOUR_VPS_IP:3001`
+   - API จะทำงานที่: `http://YOUR_VPS_IP:3001/api`
+
+### Auto-Detection API URL
+
+โปรเจคนี้มีระบบ auto-detect API URL ที่จะ:
+- ตรวจสอบ environment variable `VITE_API_BASE_URL` ก่อน
+- ถ้าไม่มี จะใช้ current domain + port 3001 อัตโนมัติ
+- ใช้งานได้ทั้งบน localhost และ VPS โดยไม่ต้องแก้ไขโค้ด
+
+### การใช้งานบน VPS พร้อม Domain
+
+หากต้องการใช้งานผ่าน domain name และ reverse proxy:
+
+1. ตั้งค่า reverse proxy (nginx/apache) 
+2. ตั้งค่า environment variable:
+   ```bash
+   VITE_API_BASE_URL=https://yourdomain.com/api
+   ```
+
 ไฟล์ที่ build แล้วจะอยู่ในโฟลเดอร์ `dist/` พร้อมสำหรับการ deploy บน web server ใดๆ
 
 ---
