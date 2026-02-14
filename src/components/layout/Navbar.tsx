@@ -105,7 +105,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <img src="https://postimg.cc/8j3zfnGs" alt="Kunlun Logo" className="w-9 h-9 object-cover rounded transition-all group-hover:scale-105" />
+            <img src="https://hard-pink-jcmsi3qfi2.edgeone.app/Gemini_Generated_Image_a0khsaa0khsaa0kh_1.png" alt="Kunlun Logo" className="w-9 h-9 object-cover rounded transition-all group-hover:scale-105" />
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Kunlun Shop
             </span>
