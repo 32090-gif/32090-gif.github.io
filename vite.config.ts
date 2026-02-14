@@ -8,9 +8,9 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        entryFileNames: `index-${Date.now()}.js`,
+        entryFileNames: `app-${Date.now()}.js`,
         chunkFileNames: `chunk-${Date.now()}.js`,
-        assetFileNames: `asset-${Date.now()}.[ext]`
+        assetFileNames: `style-${Date.now()}.[ext]`
       }
     }
   },
