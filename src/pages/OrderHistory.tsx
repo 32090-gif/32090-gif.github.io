@@ -43,7 +43,7 @@ const OrderHistory = () => {
   const fetchOrderHistory = async () => {
     try {
       const token = getToken();
-      const response = await fetch('https://getkunlun.me/api/orders/history', {
+      const response = await fetch('/api/orders/history', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

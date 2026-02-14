@@ -2,14 +2,8 @@
 // For development with cloudflared, set VITE_API_BASE_URL environment variable
 // or update the URL here after starting cloudflared tunnel
 
-// Dynamic API URL detection
-const getAPIBaseURL = (): string => {
-  // Use current website's base URL + /api
-  const currentOrigin = window.location.origin;
-  return `${currentOrigin}/api`;
-};
-
-const API_BASE_URL = getAPIBaseURL();
+// Static relative API URL - this will work on any domain
+const API_BASE_URL = '/api';
 
 console.log('🔗 API Base URL:', API_BASE_URL);
 console.log('🌐 Current host:', window.location.host);
