@@ -194,7 +194,7 @@ const DynamicPage: React.FC<DynamicPageProps> = ({ pageId }) => {
       {pageData.elements.length === 0 && (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">ยินดีต้อนรับสู่ Slumzick</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">ยินดีต้อนรับสู่ Kunlun</h1>
             <p className="text-xl text-gray-600 mb-8">เติมเงินเกมและซื้อสินค้าดิจิทัลได้ง่ายๆ ปลอดภัย รวดเร็ว</p>
             <div className="space-x-4">
               <button

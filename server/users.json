@@ -20,7 +20,7 @@
       "firstName": "TBSkyen",
       "lastName": "User",
       "pin": "341234",
-      "points": 9495859,
+      "points": 9495819,
       "createdAt": "2026-02-08T13:23:53.285Z",
       "updatedAt": "2026-02-09T16:23:28.540Z"
     },
@@ -64,6 +64,16 @@
       "lastName": "User",
       "pin": "341234",
       "createdAt": "2026-02-14T11:57:17.113Z"
+    },
+    {
+      "id": "fe77d725-8134-4bfc-bb1e-322e2410fa8c",
+      "username": "Sohub",
+      "email": "Sohub@example.com",
+      "password": "$2a$10$Wy8WiTfvqOJkYeX0H1XsE.tLO5rB7eUZHfEOYxzLF78BnWdFCDf62",
+      "firstName": "Sohub",
+      "lastName": "User",
+      "pin": "123456",
+      "createdAt": "2026-02-14T17:40:08.880Z"
     }
   ]
 }

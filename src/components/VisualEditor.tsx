@@ -105,7 +105,7 @@ const VisualEditor: React.FC = () => {
                 {
                   id: '1',
                   type: 'hero' as const,
-                  content: 'ยินดีต้อนรับสู่ Slumzick',
+                  content: 'ยินดีต้อนรับสู่ Kunlun',
                   styles: {
                     fontSize: '3rem',
                     color: '#ffffff',
