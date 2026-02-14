@@ -2,6 +2,9 @@ tunnel: a0b83939-c4eb-47ca-857f-3c142b3a0ca9
 credentials-file: C:\Users\User\.cloudflared\a0b83939-c4eb-47ca-857f-3c142b3a0ca9.json
 
 ingress:
-  - hostname: api.getkunlun.me
+  - hostname: getkunlun.me
+    path: /api/*
     service: http://localhost:3001
+  - hostname: getkunlun.me
+    service: https://32090-gif.github.io
   - service: http_status:404

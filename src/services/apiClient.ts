@@ -4,13 +4,9 @@
 
 // Dynamic API URL detection
 const getAPIBaseURL = (): string => {
-  // If environment variable is set, use it
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
-  }
-  
-  // Force all requests to use https://getkunlun.me/api
-  return 'https://getkunlun.me/api';
+  // Use current website's base URL + /api
+  const currentOrigin = window.location.origin;
+  return `${currentOrigin}/api`;
 };
 
 const API_BASE_URL = getAPIBaseURL();

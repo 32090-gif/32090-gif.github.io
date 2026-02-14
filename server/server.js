@@ -13,7 +13,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'kunlun-secret-key-2026';
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:8082', 'http://localhost:8081', 'http://localhost:8080', 'http://localhost:3000'],
+  origin: [
+    'http://localhost:8082', 
+    'http://localhost:8081', 
+    'http://localhost:8080', 
+    'http://localhost:3000',
+    'https://getkunlun.me',
+    'https://www.getkunlun.me'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
