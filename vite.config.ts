@@ -11,6 +11,11 @@ export default defineConfig(({ mode }) => ({
         entryFileNames: `app-${Date.now()}.js`,
         chunkFileNames: `chunk-${Date.now()}.js`,
         assetFileNames: `style-${Date.now()}.[ext]`
+      },
+      // Disable aggressive tree-shaking for admin routes
+      treeshake: {
+        moduleSideEffects: true,
+        propertyReadSideEffects: true
       }
     }
   },

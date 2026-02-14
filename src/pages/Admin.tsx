@@ -31,6 +31,17 @@ import { useNavigate } from "react-router-dom";
 import ProductManager from "@/components/admin/ProductManager";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
+// TypeScript declaration for window property
+declare global {
+  interface Window {
+    __ADMIN_AUTH_REQUIRED__?: boolean;
+  }
+}
+
+// Admin Key constant - MUST NOT BE REMOVED OR OPTIMIZED OUT
+const ADMIN_KEY_CONSTANT = "kunlun2026";
+console.log("Admin Key loaded:", ADMIN_KEY_CONSTANT ? "Yes" : "No");
+
 interface User {
   id: string;
   username: string;
@@ -65,6 +76,7 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [announcements, setAnnouncements] = useState<string[]>([]);
   const [announcementText, setAnnouncementText] = useState("");
+  // ALWAYS start false - will check sessionStorage in useEffect
   const [isAdminKeyVerified, setIsAdminKeyVerified] = useState<boolean>(false);
   const [adminKeyInput, setAdminKeyInput] = useState<string>("");
   const [chartData, setChartData] = useState({
@@ -79,10 +91,8 @@ const Admin = () => {
     totalOrders: 0
   });
 
-  // Admin Key - เปลี่ยนได้ตามต้องการ
-  const ADMIN_KEY = "kunlun2026";
-
   useEffect(() => {
+    console.log("Admin component mounted, checking admin key...");
     // Check if user is authenticated
     if (!isAuthenticated()) {
       navigate("/login");
@@ -91,9 +101,13 @@ const Admin = () => {
 
     // Check if admin key is already verified in this session
     const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
-    if (savedAdminKey === ADMIN_KEY) {
+    console.log("Saved admin key:", savedAdminKey);
+    if (savedAdminKey === ADMIN_KEY_CONSTANT) {
+      console.log("Admin key verified from session");
       setIsAdminKeyVerified(true);
       loadData();
+    } else {
+      console.log("Admin key not verified, showing key input");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
@@ -260,15 +274,18 @@ const Admin = () => {
   };
 
   const handleAdminKeySubmit = () => {
-    if (adminKeyInput === ADMIN_KEY) {
+    console.log("Submitting admin key...");
+    if (adminKeyInput === ADMIN_KEY_CONSTANT) {
+      console.log("Admin key correct!");
       setIsAdminKeyVerified(true);
-      sessionStorage.setItem('adminKeyVerified', ADMIN_KEY);
+      sessionStorage.setItem('adminKeyVerified', ADMIN_KEY_CONSTANT);
       loadData();
       toast({
         title: "สำเร็จ",
         description: "เข้าสู่หน้า Admin แล้ว"
       });
     } else {
+      console.log("Admin key incorrect!");
       toast({
         title: "Error",
         description: "Admin Key ไม่ถูกต้อง",
@@ -377,8 +394,13 @@ const Admin = () => {
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Admin Key Verification Screen
+  // Admin Key Verification Screen - FORCE THIS TO BE INCLUDED IN BUILD
   if (!isAdminKeyVerified) {
+    // This prevents tree-shaking
+    if (typeof window !== 'undefined') {
+      window.__ADMIN_AUTH_REQUIRED__ = true;
+    }
+    
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
