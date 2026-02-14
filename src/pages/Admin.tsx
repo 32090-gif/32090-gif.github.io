@@ -65,8 +65,8 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [announcements, setAnnouncements] = useState<string[]>([]);
   const [announcementText, setAnnouncementText] = useState("");
-  const [isAdminKeyVerified, setIsAdminKeyVerified] = useState(false);
-  const [adminKeyInput, setAdminKeyInput] = useState("");
+  const [isAdminKeyVerified, setIsAdminKeyVerified] = useState<boolean>(false);
+  const [adminKeyInput, setAdminKeyInput] = useState<string>("");
   const [chartData, setChartData] = useState({
     categoryStats: [] as Array<{category: string, sales: number, orders: number}>,
     userGrowth: [] as Array<{month: string, users: number}>,
@@ -95,6 +95,7 @@ const Admin = () => {
       setIsAdminKeyVerified(true);
       loadData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   const loadData = async () => {
