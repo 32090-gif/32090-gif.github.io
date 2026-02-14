@@ -1,9 +1,8 @@
 // API Client for Kunlun Backend
-// For development with cloudflared, set VITE_API_BASE_URL environment variable
-// or update the URL here after starting cloudflared tunnel
-
-// Static relative API URL - this will work on any domain
-const API_BASE_URL = '/api';
+// For production on getkunlun.me, use the correct API endpoint
+const API_BASE_URL = window.location.hostname.includes('getkunlun.me') 
+  ? 'https://getkunlun.me/api' 
+  : '/api';
 
 console.log('🔗 API Base URL:', API_BASE_URL);
 console.log('🌐 Current host:', window.location.host);
