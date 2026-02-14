@@ -65,6 +65,8 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [announcements, setAnnouncements] = useState<string[]>([]);
   const [announcementText, setAnnouncementText] = useState("");
+  const [isAdminKeyVerified, setIsAdminKeyVerified] = useState(false);
+  const [adminKeyInput, setAdminKeyInput] = useState("");
   const [chartData, setChartData] = useState({
     categoryStats: [] as Array<{category: string, sales: number, orders: number}>,
     userGrowth: [] as Array<{month: string, users: number}>,
@@ -77,14 +79,22 @@ const Admin = () => {
     totalOrders: 0
   });
 
+  // Admin Key - เปลี่ยนได้ตามต้องการ
+  const ADMIN_KEY = "kunlun2026";
+
   useEffect(() => {
-    // Check if user is authenticated (you might want to add admin role check here)
+    // Check if user is authenticated
     if (!isAuthenticated()) {
       navigate("/login");
       return;
     }
-    
-    loadData();
+
+    // Check if admin key is already verified in this session
+    const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
+    if (savedAdminKey === ADMIN_KEY) {
+      setIsAdminKeyVerified(true);
+      loadData();
+    }
   }, [navigate]);
 
   const loadData = async () => {
@@ -205,28 +215,62 @@ const Admin = () => {
   const saveAnnouncements = async () => {
     try {
       const messages = announcementText.split('\n').filter(line => line.trim());
+      
+      // Get fresh token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "กรุณาเข้าสู่ระบบใหม่",
+          variant: "destructive"
+        });
+        navigate("/login");
+        return;
+      }
+
       const response = await fetch('/api/announcements', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ messages })
       });
 
-      if (response.ok) {
+      const data = await response.json();
+
+      if (response.ok && data.success) {
         setAnnouncements(messages);
         toast({
           title: "สำเร็จ",
           description: "บันทึกประกาศแล้ว"
         });
       } else {
-        throw new Error('Failed to save announcements');
+        throw new Error(data.message || 'Failed to save announcements');
       }
     } catch (error) {
+      console.error('Save announcements error:', error);
       toast({
         title: "Error",
-        description: "ไม่สามารถบันทึกประกาศได้",
+        description: error instanceof Error ? error.message : "ไม่สามารถบันทึกประกาศได้",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAdminKeySubmit = () => {
+    if (adminKeyInput === ADMIN_KEY) {
+      setIsAdminKeyVerified(true);
+      sessionStorage.setItem('adminKeyVerified', ADMIN_KEY);
+      loadData();
+      toast({
+        title: "สำเร็จ",
+        description: "เข้าสู่หน้า Admin แล้ว"
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Admin Key ไม่ถูกต้อง",
         variant: "destructive"
       });
     }
@@ -331,6 +375,56 @@ const Admin = () => {
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Admin Key Verification Screen
+  if (!isAdminKeyVerified) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl text-center">Admin Access</CardTitle>
+            <p className="text-muted-foreground text-center mt-2">
+              กรุณาใส่ Admin Key เพื่อเข้าสู่ระบบจัดการ
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Input
+                type="password"
+                placeholder="กรอก Admin Key"
+                value={adminKeyInput}
+                onChange={(e) => setAdminKeyInput(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAdminKeySubmit();
+                  }
+                }}
+              />
+            </div>
+            <Button 
+              className="w-full" 
+              onClick={handleAdminKeySubmit}
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              เข้าสู่ระบบ Admin
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={() => navigate("/")}
+            >
+              กลับหน้าหลัก
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
