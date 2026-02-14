@@ -54,6 +54,16 @@
       "lastName": "User",
       "pin": "341234",
       "createdAt": "2026-02-10T16:37:52.870Z"
+    },
+    {
+      "id": "5711abd8-7ffa-47a8-9559-2b6596e147bd",
+      "username": "Kuydadadada",
+      "email": "Kuydadadada@example.com",
+      "password": "$2a$10$aSmVoDfkQuxCfeJeg353nutCRza3qHYhkJVqv.KpX0jwr9JutCh6C",
+      "firstName": "Kuydadadada",
+      "lastName": "User",
+      "pin": "341234",
+      "createdAt": "2026-02-14T11:57:17.113Z"
     }
   ]
 }
