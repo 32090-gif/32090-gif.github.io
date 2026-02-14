@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import "./forceRebuild.js"; // Force rebuild
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import Categories from "./pages/Categories";
@@ -47,3 +48,4 @@ const App = () => (
 );
 
 export default App;
+// Timestamp: 02/14/2026 18:35:51

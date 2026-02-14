@@ -5,6 +5,15 @@ import path from "path";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   base: "./",
+  build: {
+    rollupOptions: {
+      output: {
+        entryFileNames: `index-${Date.now()}.js`,
+        chunkFileNames: `chunk-${Date.now()}.js`,
+        assetFileNames: `asset-${Date.now()}.[ext]`
+      }
+    }
+  },
   server: {
     host: "::",
     port: 8080,
