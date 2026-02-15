@@ -76,8 +76,16 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [announcements, setAnnouncements] = useState<string[]>([]);
   const [announcementText, setAnnouncementText] = useState("");
-  // ALWAYS start false - will check sessionStorage in useEffect
-  const [isAdminKeyVerified, setIsAdminKeyVerified] = useState<boolean>(false);
+  
+  // Force admin key check - ALWAYS require key by default
+  const getAdminKeyStatus = () => {
+    if (typeof window === 'undefined') return false;
+    const saved = sessionStorage.getItem('adminKeyVerified');
+    // Only return true if explicitly verified
+    return saved === ADMIN_KEY_CONSTANT;
+  };
+  
+  const [isAdminKeyVerified, setIsAdminKeyVerified] = useState<boolean>(false); // Start false
   const [adminKeyInput, setAdminKeyInput] = useState<string>("");
   const [chartData, setChartData] = useState({
     categoryStats: [] as Array<{category: string, sales: number, orders: number}>,
@@ -92,22 +100,20 @@ const Admin = () => {
   });
 
   useEffect(() => {
-    console.log("Admin component mounted, checking admin key...");
-    // Check if user is authenticated
+    // Check if user is authenticated first
     if (!isAuthenticated()) {
       navigate("/login");
       return;
     }
 
-    // Check if admin key is already verified in this session
+    // Check if admin key is verified
     const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
-    console.log("Saved admin key:", savedAdminKey);
     if (savedAdminKey === ADMIN_KEY_CONSTANT) {
-      console.log("Admin key verified from session");
       setIsAdminKeyVerified(true);
       loadData();
     } else {
-      console.log("Admin key not verified, showing key input");
+      // Redirect to admin login page
+      navigate("/admin-login");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
@@ -274,23 +280,21 @@ const Admin = () => {
   };
 
   const handleAdminKeySubmit = () => {
-    console.log("Submitting admin key...");
-    if (adminKeyInput === ADMIN_KEY_CONSTANT) {
-      console.log("Admin key correct!");
-      setIsAdminKeyVerified(true);
+    if (adminKeyInput.trim() === ADMIN_KEY_CONSTANT) {
       sessionStorage.setItem('adminKeyVerified', ADMIN_KEY_CONSTANT);
+      setIsAdminKeyVerified(true);
       loadData();
       toast({
-        title: "สำเร็จ",
-        description: "เข้าสู่หน้า Admin แล้ว"
+        title: "ยืนยันตัวตนสำเร็จ",
+        description: "เข้าสู่ระบบ Admin สำเร็จ",
       });
     } else {
-      console.log("Admin key incorrect!");
       toast({
-        title: "Error",
-        description: "Admin Key ไม่ถูกต้อง",
-        variant: "destructive"
+        title: "Admin Key ไม่ถูกต้อง",
+        description: "กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
       });
+      setAdminKeyInput("");
     }
   };
 
@@ -394,13 +398,11 @@ const Admin = () => {
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Admin Key Verification Screen - FORCE THIS TO BE INCLUDED IN BUILD
-  if (!isAdminKeyVerified) {
-    // This prevents tree-shaking
-    if (typeof window !== 'undefined') {
-      window.__ADMIN_AUTH_REQUIRED__ = true;
-    }
-    
+  // Admin Key Verification Screen - MUST SHOW if not verified
+  // Using || to ensure this branch is always included in build
+  const showAdminKeyScreen = !isAdminKeyVerified || false;
+  
+  if (showAdminKeyScreen && !isAdminKeyVerified) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -448,6 +450,9 @@ const Admin = () => {
       </div>
     );
   }
+
+  // Admin will redirect to /admin-login if key not verified (in useEffect)
+  // This code only runs if key is verified
 
   if (loading) {
     return (

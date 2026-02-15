@@ -12,12 +12,14 @@ export default defineConfig(({ mode }) => ({
         chunkFileNames: `chunk-${Date.now()}.js`,
         assetFileNames: `style-${Date.now()}.[ext]`
       },
-      // Disable aggressive tree-shaking for admin routes
+      // Enable tree-shaking with safe defaults
       treeshake: {
         moduleSideEffects: true,
         propertyReadSideEffects: true
       }
-    }
+    },
+    // Use esbuild for fast minification
+    minify: 'esbuild'
   },
   server: {
     host: "::",
