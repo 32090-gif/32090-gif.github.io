@@ -100,14 +100,11 @@ const Admin = () => {
   });
 
   useEffect(() => {
-    // Check admin key FIRST before checking user authentication
-    const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
-    if (savedAdminKey !== ADMIN_KEY_CONSTANT) {
-      // Show admin key screen (don't redirect)
-      setIsAdminKeyVerified(false);
-      setLoading(false);
-      return;
-    }
+      const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
+      if (savedAdminKey !== ADMIN_KEY_CONSTANT) {
+        navigate("/admin-login");
+        return;
+      }
 
     // Then check if user is authenticated
     if (!isAuthenticated()) {
@@ -401,55 +398,11 @@ const Admin = () => {
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Admin Key Verification Screen
   if (!isAdminKeyVerified) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
-                <Shield className="w-8 h-8 text-white" />
-              </div>
-            </div>
-            <CardTitle className="text-2xl text-center">Admin Access</CardTitle>
-            <p className="text-muted-foreground text-center mt-2">
-              กรุณาใส่ Admin Key เพื่อเข้าสู่ระบบจัดการ
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="กรอก Admin Key"
-                value={adminKeyInput}
-                onChange={(e) => setAdminKeyInput(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    handleAdminKeySubmit();
-                  }
-                }}
-              />
-            </div>
-            <Button 
-              className="w-full" 
-              onClick={handleAdminKeySubmit}
-            >
-              <Shield className="w-4 h-4 mr-2" />
-              เข้าสู่ระบบ Admin
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full" 
-              onClick={() => navigate("/")}
-            >
-              กลับหน้าหลัก
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return null; // Render nothing if admin key is not verified
   }
+  // ...existing code...
+}
 
   if (loading) {
     return (
