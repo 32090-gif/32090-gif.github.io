@@ -103,8 +103,9 @@ const Admin = () => {
     // Check admin key FIRST before checking user authentication
     const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
     if (savedAdminKey !== ADMIN_KEY_CONSTANT) {
-      // Redirect to admin login page if admin key not verified
-      navigate("/admin-login");
+      // Show admin key screen (don't redirect)
+      setIsAdminKeyVerified(false);
+      setLoading(false);
       return;
     }
 
@@ -400,11 +401,8 @@ const Admin = () => {
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Admin Key Verification Screen - MUST SHOW if not verified
-  // Using || to ensure this branch is always included in build
-  const showAdminKeyScreen = !isAdminKeyVerified || false;
-  
-  if (showAdminKeyScreen && !isAdminKeyVerified) {
+  // Admin Key Verification Screen
+  if (!isAdminKeyVerified) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -452,9 +450,6 @@ const Admin = () => {
       </div>
     );
   }
-
-  // Admin will redirect to /admin-login if key not verified (in useEffect)
-  // This code only runs if key is verified
 
   if (loading) {
     return (
