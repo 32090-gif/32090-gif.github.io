@@ -100,21 +100,23 @@ const Admin = () => {
   });
 
   useEffect(() => {
-    // Check if user is authenticated first
+    // Check admin key FIRST before checking user authentication
+    const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
+    if (savedAdminKey !== ADMIN_KEY_CONSTANT) {
+      // Redirect to admin login page if admin key not verified
+      navigate("/admin-login");
+      return;
+    }
+
+    // Then check if user is authenticated
     if (!isAuthenticated()) {
       navigate("/login");
       return;
     }
 
-    // Check if admin key is verified
-    const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
-    if (savedAdminKey === ADMIN_KEY_CONSTANT) {
-      setIsAdminKeyVerified(true);
-      loadData();
-    } else {
-      // Redirect to admin login page
-      navigate("/admin-login");
-    }
+    // Both admin key and user are verified, load data
+    setIsAdminKeyVerified(true);
+    loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
