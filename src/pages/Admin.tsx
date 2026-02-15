@@ -100,19 +100,21 @@ const Admin = () => {
   });
 
   useEffect(() => {
-      const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
-      if (savedAdminKey !== ADMIN_KEY_CONSTANT) {
-        navigate("/admin-login");
-        return;
-      }
+    const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
+    console.log('[DEBUG] Admin.tsx useEffect: savedAdminKey =', savedAdminKey);
+    if (savedAdminKey !== ADMIN_KEY_CONSTANT) {
+      console.log('[DEBUG] Redirecting to /admin-login because admin key not verified');
+      navigate("/admin-login");
+      return;
+    }
 
-    // Then check if user is authenticated
     if (!isAuthenticated()) {
+      console.log('[DEBUG] Redirecting to /login because user not authenticated');
       navigate("/login");
       return;
     }
 
-    // Both admin key and user are verified, load data
+    console.log('[DEBUG] Admin key and user authenticated, loading admin panel');
     setIsAdminKeyVerified(true);
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
