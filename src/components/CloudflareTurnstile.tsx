@@ -108,36 +108,46 @@ const CloudflareTurnstile = () => {
                           window.location.hostname.includes('169.254.');
 
         if (isLocalhost) {
-          // Localhost - ข้ามการ verify
+          console.log('Localhost detected - skipping Turnstile');
           setIsVerified(true);
           setIsLoading(false);
           return;
         }
 
-        const widgetId = window.turnstile.render(turnstileRef.current, {
-          sitekey: '0x4AAAAAACf9_YA-uWiPDCnS', // Real sitekey
-          theme: 'light',
-          language: 'th',
-          callback: (token: string) => {
-            console.log('Turnstile callback received:', token);
-            // ส่ง token ไปตรวจสอบกับ server
-            verifyToken(token);
-          },
-          'error-callback': (error: any) => {
-            console.error('Turnstile error:', error);
-            setError('การยืนยันตัวตนล้มเหลว กรุณาลองใหม่');
+        // ตรวจสอบว่ามี Cloudflare headers หรือไม่
+        const checkCloudflare = async () => {
+          try {
+            const response = await fetch('/api/cloudflare-status');
+            const data = await response.json();
+            
+            if (!data.success) {
+              console.log('Not connected to Cloudflare - skipping Turnstile');
+              setError('ไม่ได้เชื่อมต่อผ่าน Cloudflare');
+              setIsLoading(false);
+              return;
+            }
+            
+            console.log('Cloudflare connected - loading Turnstile');
+            // สร้าง turnstile widget
+            const widgetId = window.turnstile.render(turnstileRef.current, {
+              sitekey: '0x4AAAAAACf9_YA-uWiPDCnS',
+              theme: 'light',
+              language: 'th',
+              callback: verifyToken,
+              'error-callback': setError,
+              'expired-callback': () => setIsVerified(false)
+            });
+            
+            console.log('Turnstile widget created:', widgetId);
             setIsLoading(false);
-          },
-          'expired-callback': () => {
-            console.log('Turnstile expired');
-            setError('การยืนยันตัวตนหมดอายุ กรุณาลองใหม่');
-            setIsVerified(false);
+          } catch (error) {
+            console.error('Cloudflare check failed:', error);
+            setError('ไม่สามารถตรวจสอบ Cloudflare ได้');
             setIsLoading(false);
           }
-        });
-        
-        console.log('Turnstile widget created with ID:', widgetId);
-        setIsLoading(false);
+        };
+
+        checkCloudflare();
       } catch (error) {
         console.error('Error creating Turnstile widget:', error);
         setError('ไม่สามารถสร้างวิดเจ็ตยืนยันตัวตนได้');
@@ -244,20 +254,19 @@ const CloudflareTurnstile = () => {
             {!isLoading && !isVerified && !isVerifyingToken && (
               <>
                 {error && (
-                  <button
-                    onClick={handleRetry}
-                    className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-all duration-200 flex items-center justify-center gap-2"
-                  >
-                    <RefreshCw className="w-5 h-5" />
-                    ลองใหม่
-                  </button>
+                  <div className="text-center space-y-3">
+                    <p className="text-sm text-red-600">{error}</p>
+                    <p className="text-xs text-gray-500">
+                      แนะนำ: ตั้งค่า Cloudflare Tunnel หรือ Cloudflare Proxy
+                    </p>
+                  </div>
                 )}
                 
                 <button
                   onClick={handleSkip}
-                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg text-sm hover:bg-gray-200 transition-all duration-200"
+                  className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-all duration-200"
                 >
-                  ข้าม (ไม่แนะนำ)
+                  ดำเนินการต่อ (ไม่มีการป้องกัน)
                 </button>
               </>
             )}
