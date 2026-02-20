@@ -5,12 +5,12 @@ import StatsSection from "@/components/home/StatsSection";
 import CategorySection from "@/components/home/CategorySection";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import ScrollingBanner from "@/components/ScrollingBanner";
-import CloudflareStatus from "@/components/CloudflareStatus";
+import CloudflareVerification from "@/components/CloudflareVerification";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background bg-pattern">
-      <CloudflareStatus />
+      <CloudflareVerification />
       <Navbar />
       <ScrollingBanner />
       <main>
