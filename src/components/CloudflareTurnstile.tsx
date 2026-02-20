@@ -64,21 +64,39 @@ const CloudflareTurnstile = () => {
       
       script.onload = () => {
         setTimeout(() => {
-          initTurnstile();
-        }, 500);
+          if (window.turnstile) {
+            initTurnstile();
+          } else {
+            console.error('Turnstile not available after script load');
+            setError('ไม่สามารถโหลดระบบยืนยันตัวตนได้');
+            setIsLoading(false);
+          }
+        }, 100);
       };
       
-      script.onerror = () => {
-        setError('ไม่สามารถโหลด Cloudflare Turnstile ได้');
+      script.onerror = (error) => {
+        console.error('Failed to load Turnstile script:', error);
+        setError('ไม่สามารถเชื่อมต่อกับ Cloudflare ได้');
         setIsLoading(false);
       };
-
+      
       document.head.appendChild(script);
     };
 
     const initTurnstile = () => {
-      if (!window.turnstile || !turnstileRef.current) return;
+      console.log('Initializing Turnstile widget...');
+      
+      if (!turnstileRef.current) {
+        console.error('Turnstile ref not found');
+        return;
+      }
 
+      // ล้าง turnstile เก่าถ้ามี
+      if (turnstileRef.current.firstChild) {
+        turnstileRef.current.innerHTML = '';
+      }
+
+      // สร้าง turnstile widget
       try {
         setIsLoading(true);
         setError(null);
@@ -96,17 +114,12 @@ const CloudflareTurnstile = () => {
           return;
         }
 
-        // ล้าง turnstile เก่าถ้ามี
-        if (turnstileRef.current.firstChild) {
-          turnstileRef.current.innerHTML = '';
-        }
-
-        // สร้าง turnstile widget
         const widgetId = window.turnstile.render(turnstileRef.current, {
           sitekey: '0x4AAAAAACf9_YA-uWiPDCnS', // Real sitekey
           theme: 'light',
           language: 'th',
           callback: (token: string) => {
+            console.log('Turnstile callback received:', token);
             // ส่ง token ไปตรวจสอบกับ server
             verifyToken(token);
           },
@@ -122,11 +135,12 @@ const CloudflareTurnstile = () => {
             setIsLoading(false);
           }
         });
-
+        
+        console.log('Turnstile widget created with ID:', widgetId);
         setIsLoading(false);
-      } catch (err) {
-        console.error('Error initializing Turnstile:', err);
-        setError('ไม่สามารถเริ่มการยืนยันตัวตนได้');
+      } catch (error) {
+        console.error('Error creating Turnstile widget:', error);
+        setError('ไม่สามารถสร้างวิดเจ็ตยืนยันตัวตนได้');
         setIsLoading(false);
       }
     };
