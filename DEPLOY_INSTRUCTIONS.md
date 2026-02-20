@@ -25,7 +25,7 @@
 
 ```bash
 # 1. เข้าไปยังโฟลเดอร์โปรเจค
-cd /path/to/Slumzick
+cd /path/to/Kunlun
 
 # 2. Pull โค้ดล่าสุดจาก GitHub
 git pull origin main
@@ -50,7 +50,7 @@ node server.js       # ถ้ารันแบบปกติ
 
 ```bash
 # 1. บน Windows เปิด PowerShell
-cd c:\Users\User\Desktop\ProjectCustomer\Slumzick
+cd c:\Users\User\Desktop\ProjectCustomer\Kunlun
 
 # 2. Run build script
 .\build-production.bat

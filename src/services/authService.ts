@@ -77,7 +77,7 @@ export const loginUser = async (loginData: LoginData): Promise<AuthResponse> => 
     if (response.success) {
       // Store auth token
       if (response.token) {
-        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('token', response.token);
       }
       
       console.log('Login successful via API:', response.user);
@@ -117,7 +117,7 @@ export const isAuthenticated = (): boolean => {
 };
 
 export const getToken = (): string | null => {
-  return localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+  return localStorage.getItem('token');
 };
 
 export const getAllUsers = async (): Promise<UserData[]> => {

@@ -6,10 +6,157 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'kunlun-secret-key-2026';
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadDir = path.join(__dirname, 'uploads', 'avatars');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      // Use unique naming for initial upload, will be renamed in route handler
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  }),
+  fileFilter: (req, file, cb) => {
+    // Accept images only
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
+// Profile helper functions
+const getUserProfile = (userId) => {
+  try {
+    const data = readUsersFromFile();
+    const user = data.users.find(u => u.id === userId);
+    
+    if (!user) return null;
+    
+    // Return safe profile data
+    // Get user orders
+    const userOrders = getUserOrders(userId);
+    
+    // Calculate total spent
+    const totalSpent = userOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+    
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      avatar: user.avatar || null,
+      pin: user.pin,
+      points: user.points || 0,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      // Additional profile data
+      totalOrders: userOrders.length,
+      totalSpent: totalSpent,
+      recentOrders: userOrders.slice(0, 5) // Last 5 orders
+    };
+  } catch (error) {
+    console.error('Error getting user profile:', error);
+    return null;
+  }
+};
+
+const updateUserProfile = (userId, updates) => {
+  try {
+    const data = readUsersFromFile();
+    const userIndex = data.users.findIndex(u => u.id === userId);
+    
+    if (userIndex === -1) return null;
+    
+    // Update allowed fields
+    const allowedFields = ['username', 'email', 'firstName', 'lastName', 'avatar'];
+    allowedFields.forEach(field => {
+      if (updates[field] !== undefined) {
+        data.users[userIndex][field] = updates[field];
+      }
+    });
+    
+    data.users[userIndex].updatedAt = new Date().toISOString();
+    
+    const success = writeUsersToFile(data);
+    if (!success) return null;
+    
+    return getUserProfile(userId);
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    return null;
+  }
+};
+
+const processAvatarUpload = (avatarFile, userId) => {
+  try {
+    if (!avatarFile) {
+      console.log('No avatar file provided');
+      return null;
+    }
+    
+    console.log('Processing avatar upload:', {
+      originalname: avatarFile.originalname,
+      mimetype: avatarFile.mimetype,
+      size: avatarFile.size,
+      path: avatarFile.path
+    });
+    
+    // Define avatar paths
+    const avatarName = `avatar-${userId}.jpg`;
+    const oldPath = avatarFile.path; // Already full path
+    const newPath = path.join(__dirname, 'uploads', 'avatars', avatarName);
+    
+    console.log('File paths:', {
+      oldPath,
+      newPath
+    });
+    
+    // Ensure uploads/avatars directory exists
+    const avatarDir = path.join(__dirname, 'uploads', 'avatars');
+    if (!fs.existsSync(avatarDir)) {
+      fs.mkdirSync(avatarDir, { recursive: true });
+      console.log('Created avatars directory:', avatarDir);
+    }
+    
+    // Delete old avatar if it exists
+    if (fs.existsSync(newPath)) {
+      fs.unlinkSync(newPath);
+      console.log('Deleted old avatar:', newPath);
+    }
+    
+    // Move and rename uploaded file
+    fs.renameSync(oldPath, newPath);
+    console.log('Successfully moved file to:', newPath);
+    
+    return `/uploads/avatars/${avatarName}`;
+  } catch (error) {
+    console.error('Error processing avatar upload:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
+    return null;
+  }
+};
 
 // Middleware
 app.use(cors({
@@ -31,6 +178,9 @@ app.options('*', cors());
 
 // Serve static files from dist directory
 app.use(express.static(path.join(__dirname, '..', 'dist')));
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -596,7 +746,11 @@ const verifyToken = (req, res, next) => {
   console.log('=== VerifyToken Middleware ===');
   console.log('Headers:', req.headers.authorization);
   
-  const token = req.header('Authorization')?.replace('Bearer ', '');
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') 
+    ? authHeader.substring(7) 
+    : null;
+  
   console.log('Extracted token:', token);
   
   if (!token) {
@@ -621,56 +775,190 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// Protected route example
-app.get('/api/profile', verifyToken, (req, res) => {
+// ===== PROFILE SYSTEM =====
+
+// GET /api/user/profile - Get current user's profile
+app.get('/api/user/profile', verifyToken, (req, res) => {
   try {
-    const data = readUsersFromFile();
-    const user = data.users.find(u => u.id === req.user.id);
+    const profile = getUserProfile(req.user.id);
     
-    if (!user) {
+    if (!profile) {
       return res.status(404).json({
         success: false,
-        message: 'ไม่พบผู้ใช้'
+        message: 'ไม่พบข้อมูลผู้ใช้'
       });
     }
 
     res.json({
       success: true,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        pin: user.pin,
-        createdAt: user.createdAt
-      }
+      user: profile
     });
   } catch (error) {
-    console.error('Profile error:', error);
+    console.error('Get profile error:', error);
     res.status(500).json({
       success: false,
-      message: 'เกิดข้อผิดพลาดของเซิร์ฟเวอร์'
+      message: 'เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์'
     });
   }
 });
 
-// Export/Download users data
-app.get('/api/export/users', (req, res) => {
+// PUT /api/user/profile - Update current user's profile
+app.put('/api/user/profile', verifyToken, upload.single('avatar'), (req, res) => {
   try {
-    const data = readUsersFromFile();
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', 'attachment; filename=slumzick_users.json');
-    res.send(JSON.stringify(data, null, 2));
+    const { username, firstName, lastName, email } = req.body;
+    const avatarFile = req.file;
+    
+    // Validate input data
+    const updates = {};
+    
+    if (username !== undefined) {
+      if (!username || username.trim().length < 3) {
+        return res.status(400).json({
+          success: false,
+          message: 'ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร'
+        });
+      }
+      updates.username = username.trim();
+    }
+    
+    if (email !== undefined) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: 'รูปแบบอีเมลไม่ถูกต้อง'
+        });
+      }
+      updates.email = email.trim();
+    }
+    
+    if (firstName !== undefined) {
+      updates.firstName = firstName || '';
+    }
+    
+    if (lastName !== undefined) {
+      updates.lastName = lastName || '';
+    }
+    
+    // Process avatar upload
+    if (avatarFile) {
+      const avatarPath = processAvatarUpload(avatarFile, req.user.id);
+      if (!avatarPath) {
+        return res.status(500).json({
+          success: false,
+          message: 'ไม่สามารถจัดการไฟล์รูปภาพได้'
+        });
+      }
+      updates.avatar = avatarPath;
+    }
+    
+    // Update profile
+    const updatedProfile = updateUserProfile(req.user.id, updates);
+    
+    if (!updatedProfile) {
+      return res.status(500).json({
+        success: false,
+        message: 'ไม่สามารถอัปเดตโปรไฟล์ได้'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'อัปเดตโปรไฟล์สำเร็จ',
+      user: updatedProfile
+    });
   } catch (error) {
+    console.error('Update profile error:', error);
     res.status(500).json({
       success: false,
-      message: 'เกิดข้อผิดพลาดในการส่งออกข้อมูล'
+      message: 'เกิดข้อผิดพลาดในการอัปเดตโปรไฟล์'
     });
   }
 });
 
-// Voucher endpoints
+// GET /api/user/:userId/profile - Get another user's public profile
+app.get('/api/user/:userId/profile', verifyToken, (req, res) => {
+  try {
+    const { userId } = req.params;
+    const profile = getUserProfile(userId);
+    
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'ไม่พบข้อมูลผู้ใช้'
+      });
+    }
+
+    // Return public profile data (hide sensitive info)
+    const publicProfile = {
+      id: profile.id,
+      username: profile.username,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      avatar: profile.avatar,
+      points: profile.points,
+      createdAt: profile.createdAt
+    };
+
+    res.json({
+      success: true,
+      user: publicProfile
+    });
+  } catch (error) {
+    console.error('Get public profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์'
+    });
+  }
+});
+
+// DELETE /api/user/avatar - Delete user's avatar
+app.delete('/api/user/avatar', verifyToken, (req, res) => {
+  try {
+    const profile = getUserProfile(req.user.id);
+    
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'ไม่พบข้อมูลผู้ใช้'
+      });
+    }
+
+    // Delete avatar file if exists
+    if (profile.avatar) {
+      const avatarPath = path.join(__dirname, profile.avatar);
+      if (fs.existsSync(avatarPath)) {
+        fs.unlinkSync(avatarPath);
+      }
+      
+      // Update user data
+      const updatedProfile = updateUserProfile(req.user.id, { avatar: null });
+      
+      if (!updatedProfile) {
+        return res.status(500).json({
+          success: false,
+          message: 'ไม่สามารถลบรูปภาพได้'
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'ลบรูปภาพสำเร็จ'
+    });
+  } catch (error) {
+    console.error('Delete avatar error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'เกิดข้อผิดพลาดในการลบรูปภาพ'
+    });
+  }
+});
+
+// ===== END PROFILE SYSTEM =====
+
+// Get vouchers
 app.get('/api/vouchers', (req, res) => {
   try {
     const data = readVouchersFromFile();
@@ -998,6 +1286,56 @@ app.get('/api/topups', verifyToken, (req, res) => {
   }
 });
 
+// Cloudflare status check endpoint
+app.get('/api/cloudflare-status', (req, res) => {
+  try {
+    const isLocalhost = req.hostname === 'localhost' || 
+                      req.hostname === '127.0.0.1' ||
+                      req.hostname.includes('192.168.') ||
+                      req.hostname.includes('169.254.');
+
+    if (isLocalhost) {
+      return res.json({
+        success: false,
+        status: 'localhost',
+        message: 'Running on localhost',
+        tunnelUrl: null
+      });
+    }
+
+    // ตรวจสอบว่ามี Cloudflare headers หรือไม่
+    const cfRay = req.headers['cf-ray'];
+    const cfCountry = req.headers['cf-country'];
+    const cfIPCountry = req.headers['cf-ipcountry'];
+
+    if (cfRay) {
+      return res.json({
+        success: true,
+        status: 'connected',
+        message: 'Connected via Cloudflare Tunnel',
+        tunnelUrl: req.protocol + '://' + req.get('host'),
+        cfRay: cfRay,
+        cfCountry: cfCountry || cfIPCountry
+      });
+    } else {
+      return res.json({
+        success: false,
+        status: 'direct',
+        message: 'Direct connection (no Cloudflare)',
+        tunnelUrl: null
+      });
+    }
+  } catch (error) {
+    console.error('Cloudflare status check error:', error);
+    res.status(500).json({
+      success: false,
+      status: 'error',
+      message: 'Error checking Cloudflare status',
+      tunnelUrl: null
+    });
+  }
+});
+
 // Error handling middleware
 app.use((error, req, res, next) => {
   console.error('Server error:', error);
@@ -1056,6 +1394,8 @@ app.post('/api/purchase', verifyToken, (req, res) => {
     // Get product details
     const product = getStockItem(productId);
     console.log('Product found:', product);
+    console.log('Product rewards:', product?.rewards);
+    console.log('Rewards array length:', product?.rewards?.length);
     
     if (!product) {
       console.log('Product not found');
@@ -1089,8 +1429,17 @@ app.post('/api/purchase', verifyToken, (req, res) => {
     const updatedStock = product.stock - quantity;
     updateStockItem(productId, { stock: updatedStock });
 
-    // Generate delivery code (for digital products)
-    const deliveryCode = `${product.name.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    // Generate delivery code and select random reward (for digital products)
+    let deliveryCode = `${product.name.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    let selectedReward = null;
+    
+    // Check if product has rewards and select random one
+    if (product.rewards && Array.isArray(product.rewards) && product.rewards.length > 0) {
+      const randomIndex = Math.floor(Math.random() * product.rewards.length);
+      selectedReward = product.rewards[randomIndex];
+      deliveryCode = selectedReward; // Use the reward as delivery code
+      console.log(`Selected random reward: ${selectedReward} from ${product.rewards.length} rewards`);
+    }
 
     console.log('Creating order data...');
     // Create order record
@@ -1529,6 +1878,219 @@ app.get('/api/pages/:pageId', (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error retrieving page data'
+    });
+  }
+});
+
+// Reviews helper functions
+const REVIEWS_FILE = path.join(__dirname, 'reviews.json');
+
+const readReviewsFromFile = () => {
+  try {
+    if (fs.existsSync(REVIEWS_FILE)) {
+      const data = fs.readFileSync(REVIEWS_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+    return { reviews: [] };
+  } catch (error) {
+    console.error('Error reading reviews file:', error);
+    return { reviews: [] };
+  }
+};
+
+const writeReviewsToFile = (reviewsData) => {
+  try {
+    fs.writeFileSync(REVIEWS_FILE, JSON.stringify(reviewsData, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Error writing reviews file:', error);
+    return false;
+  }
+};
+
+// Initialize reviews file
+if (!fs.existsSync(REVIEWS_FILE)) {
+  fs.writeFileSync(REVIEWS_FILE, JSON.stringify({ reviews: [] }), 'utf8');
+}
+
+// Reviews API routes
+app.get('/api/products/:productId/reviews', (req, res) => {
+  try {
+    const { productId } = req.params;
+    const reviewsData = readReviewsFromFile();
+    
+    // Filter reviews by productId
+    const productReviews = reviewsData.reviews.filter(review => review.productId === productId);
+    
+    // Sort by date (newest first)
+    productReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    res.json({
+      success: true,
+      reviews: productReviews,
+      total: productReviews.length
+    });
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    res.status(500).json({
+      success: false,
+      message: 'ไม่สามารถดึงข้อมูลรีวิวได้'
+    });
+  }
+});
+
+app.get('/api/products/:productId/user-review', verifyToken, (req, res) => {
+  try {
+    const { productId } = req.params;
+    const userId = req.user.id;
+    const reviewsData = readReviewsFromFile();
+    
+    // Find existing review
+    const existingReview = reviewsData.reviews.find(review => 
+      review.productId === productId && review.userId === userId
+    );
+    
+    res.json({
+      success: true,
+      hasReviewed: !!existingReview,
+      review: existingReview || null
+    });
+  } catch (error) {
+    console.error('Error checking user review:', error);
+    res.status(500).json({
+      success: false,
+      message: 'ไม่สามารถตรวจสอบข้อมูลรีวิวได้'
+    });
+  }
+});
+
+app.post('/api/products/:productId/reviews', verifyToken, (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { rating, comment } = req.body;
+    const userId = req.user.id;
+    const username = req.user.username;
+    
+    // Validate input
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: 'คะแนนต้องอยู่ระหว่าง 1-5'
+      });
+    }
+    
+    if (!comment || comment.trim().length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'รีวิวต้องมีอย่างน้อย 10 ตัวอักษร'
+      });
+    }
+    
+    const reviewsData = readReviewsFromFile();
+    
+    // Check if user already reviewed
+    const existingReview = reviewsData.reviews.find(review => 
+      review.productId === productId && review.userId === userId
+    );
+    
+    if (existingReview) {
+      return res.status(400).json({
+        success: false,
+        message: 'คุณได้รีวิวสินค้านี้ไปแล้ว'
+      });
+    }
+    
+    // Create new review
+    const newReview = {
+      id: Date.now().toString(),
+      productId,
+      userId,
+      username,
+      rating: parseInt(rating),
+      comment: comment.trim(),
+      createdAt: new Date().toISOString(),
+      helpful: 0,
+      verified: true
+    };
+    
+    // Add to reviews
+    reviewsData.reviews.push(newReview);
+    
+    // Save to file
+    if (writeReviewsToFile(reviewsData)) {
+      res.json({
+        success: true,
+        message: 'รีวิวสินค้าสำเร็จ',
+        review: newReview
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'ไม่สามารถบันทึกรีวิวได้'
+      });
+    }
+  } catch (error) {
+    console.error('Error submitting review:', error);
+    res.status(500).json({
+      success: false,
+      message: 'เกิดข้อผิดพลาดในการส่งรีวิว'
+    });
+  }
+});
+
+app.post('/api/reviews/:reviewId/helpful', verifyToken, (req, res) => {
+  try {
+    const { reviewId } = req.params;
+    const userId = req.user.id;
+    const reviewsData = readReviewsFromFile();
+    
+    // Find review
+    const reviewIndex = reviewsData.reviews.findIndex(review => review.id === reviewId);
+    
+    if (reviewIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'ไม่พบรีวิว'
+      });
+    }
+    
+    // Check if user already marked this review as helpful
+    const review = reviewsData.reviews[reviewIndex];
+    if (!review.helpfulUsers) {
+      review.helpfulUsers = [];
+    }
+    
+    // Check if user already clicked
+    if (review.helpfulUsers.includes(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'คุณได้กดปุ่มนี้ไปแล้ว'
+      });
+    }
+    
+    // Add user to helpfulUsers and increment count
+    review.helpfulUsers.push(userId);
+    review.helpful += 1;
+    
+    // Save to file
+    if (writeReviewsToFile(reviewsData)) {
+      res.json({
+        success: true,
+        message: 'ขอบคุณที่บอกว่ารีวิวนี้มีประโยชน์',
+        helpful: review.helpful,
+        hasMarkedHelpful: true
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'ไม่สามารถอัปเดตข้อมูลได้'
+      });
+    }
+  } catch (error) {
+    console.error('Error marking helpful:', error);
+    res.status(500).json({
+      success: false,
+      message: 'เกิดข้อผิดพลาด'
     });
   }
 });

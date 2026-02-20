@@ -35,7 +35,7 @@ class ApiClient {
 
   constructor() {
     // Load token from localStorage or sessionStorage
-    this.token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || localStorage.getItem('auth_token');
+    this.token = localStorage.getItem('token') || sessionStorage.getItem('token');
     
     // Clear token if it exists but might be invalid
     if (this.token) {
@@ -69,6 +69,8 @@ class ApiClient {
 
   private clearToken(): void {
     this.token = null;
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     localStorage.removeItem('authToken');
     sessionStorage.removeItem('authToken');
     localStorage.removeItem('auth_token');
@@ -154,7 +156,7 @@ class ApiClient {
       // Save token if registration successful
       if (response.success && response.token) {
         this.token = response.token;
-        localStorage.setItem('auth_token', response.token);
+        localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
       }
 
@@ -177,7 +179,7 @@ class ApiClient {
       // Save token if login successful
       if (response.success && response.token) {
         this.token = response.token;
-        localStorage.setItem('auth_token', response.token);
+        localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
       }
 
@@ -364,7 +366,7 @@ class ApiClient {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'slumzick_users.json';
+        link.download = 'kunlun_users.json';
         link.click();
         window.URL.revokeObjectURL(url);
       } else {

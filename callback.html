@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Callback - Kunlun</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body class="bg-black text-white flex items-center justify-center">
+    <div class="text-center">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-4 bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent">
+                Processing Login...
+            </h1>
+            <div class="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+        <p class="text-gray-400">Please wait while we process your Discord login...</p>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            
+            if (code) {
+                // Store the authorization code (in a real app, you'd exchange this for a token)
+                localStorage.setItem('discord_auth_code', code);
+                
+                // Simulate user data (in a real app, you'd fetch this from Discord API)
+                setTimeout(() => {
+                    const userData = {
+                        id: 'user_' + Math.random().toString(36).substring(7),
+                        username: 'DiscordUser',
+                        email: 'user@example.com'
+                    };
+                    
+                    localStorage.setItem('discord_user', JSON.stringify(userData));
+                    
+                    // Redirect back to main page
+                    window.location.href = './get-key.html';
+                }, 2000);
+            } else {
+                // Handle error
+                setTimeout(() => {
+                    alert('Login failed. Please try again.');
+                    window.location.href = './get-key.html';
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

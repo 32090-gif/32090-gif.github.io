@@ -1,5 +1,5 @@
 @echo off
-echo 🚀 Starting Slumzick deployment on VPS...
+echo 🚀 Starting Kunlun deployment on VPS...
 
 REM Check if .env.production exists
 if not exist ".env.production" (

@@ -1,17 +1,28 @@
 {
   "name": "Script Kunlun Premium 7 วัน",
-  "category": "แอปพลิเคชัน",
+  "category": "ไอเทมในเกม",
   "price": 40,
-  "originalPrice": 60,
-  "stock": 14,
+  "originalPrice": 55,
+  "stock": 3,
   "image": "https://i.postimg.cc/jSMFKG6W/Gemini-Generated-Image-a0khsaa0khsaa0kh-1.png",
-  "description": "สคริป Roblox ค่าย Kunlun premium 7 วัน",
-  "status": "active",
-  "discount": 33.33,
-  "tags": [
-    "gaming"
+  "description": "Script Roblox Kunlun Premium 7 วัน",
+  "whatYouGet": "คุณจะได้รับ Script Roblox Kunlun Premium 7 วัน ",
+  "rewards": [
+    "b8ad00be4ab441a895bafdabbd6fe53605e03d1a730b487f9e445e696535327d",
+    "2bf0a81957754ec7ac33c89b075954c63de063d0c2a94ddabc2675f5e355d11e",
+    "cf8d823c0c3948ae9789051fee99e73ec12aefa9b8d2494fa60ebe6f1f3079f3",
+    "56b9c3226369402090be9799e9bf98ce64c05a377c8a447eaab470171b72760c",
+    "47f463d448834fd8800d1c59a7c27e0d8550b8726f074eaa9aad3830484e01ce",
+    "ef4f4f4b8032446189af1137bf544e74afb209856fb14a739e9bb754d65cb801",
+    "87ceeb5c9cca45a2a2ec9213eace4247721b1b4cc09044158d53706c2a785ecc"
   ],
-  "id": "script-kunlun-premium-7--1770736199494",
-  "updatedAt": "2026-02-14T19:45:58.057Z",
-  "createdAt": "2026-02-10T15:09:59.518Z"
+  "status": "active",
+  "discount": 8,
+  "tags": [
+    "Gaming",
+    "Script"
+  ],
+  "id": "script-kunlun-premium-7--1771435848062",
+  "updatedAt": "2026-02-19T18:27:45.864Z",
+  "createdAt": "2026-02-18T17:30:48.069Z"
 }

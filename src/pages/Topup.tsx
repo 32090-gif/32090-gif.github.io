@@ -9,6 +9,7 @@ import { Wallet, CreditCard, Gift, ArrowLeft, CheckCircle, Clock } from "lucide-
 import apiClient from '@/services/apiClient';
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import ScrollingBanner from "@/components/ScrollingBanner";
 
 interface OwnerProfile {
   fullName?: string;
@@ -106,6 +107,7 @@ export default function Topup() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <ScrollingBanner />
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}

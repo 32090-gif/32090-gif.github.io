@@ -55,7 +55,7 @@ const PurchaseConfirmDialog = ({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-md z-[9999]">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-primary" />
@@ -172,7 +172,7 @@ const PurchaseConfirmDialog = ({
                     <p>• เราไม่แบ่งปันข้อมูลส่วนบุคคลกับบุคคลที่สาม</p>
                     <p>• การทำรายการจะได้รับการเข้ารหัสและปลอดภัย</p>
                     <p>• คุณสามารถขอลบข้อมูลได้ตามกฎหมายคุ้มครองข้อมูลส่วนบุคคล</p>
-                    <p>• ติดต่อสอบถาม: support@slumzick.com</p>
+                    <p>• ติดต่อสอบถาม: support@getkunlun.com</p>
                   </div>
                 )}
               </div>

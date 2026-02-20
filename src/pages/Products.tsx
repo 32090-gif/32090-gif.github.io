@@ -2,15 +2,18 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import ScrollingBanner from '@/components/ScrollingBanner';
 import { toast } from 'sonner';
 import { getCurrentUser, getToken } from '@/services/authService';
-import { ShoppingCart, Eye, Star, Filter, Search } from 'lucide-react';
+import { ShoppingCart, Eye, Star, Filter, Search, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import PurchaseConfirmDialog from '@/components/PurchaseConfirmDialog';
 import PurchaseSuccessDialog from '@/components/PurchaseSuccessDialog';
+import ReviewSystem from "@/components/ReviewSystem";
+import { Link } from "react-router-dom";
 
 const Products = () => {
   const [searchParams] = useSearchParams();
@@ -26,6 +29,7 @@ const Products = () => {
   // Dialog states
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [orderResult, setOrderResult] = useState<any>(null);
 
@@ -185,6 +189,11 @@ const Products = () => {
     }
   };
 
+  const handleReview = (product: any) => {
+    setSelectedProduct(product);
+    setReviewDialogOpen(true);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -198,36 +207,36 @@ const Products = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background gaming-pattern">
       <Navbar />
       <ScrollingBanner />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4">
+      <div className="container mx-auto px-4 py-12">
+        <div className="mb-12">
+          <h1 className="text-5xl font-black bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent mb-6 neon-text">
             สินค้าทั้งหมด
           </h1>
-          <p className="text-muted-foreground mb-6">
-            เลือกซื้อสินค้าคุณภาพดีที่คุณต้องการ
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl">
+            เลือกซื้อสินค้าคุณภาพดีที่คุณต้องการ พร้อมบริการรวดเร็วทันใจ
           </p>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex flex-col lg:flex-row gap-6 mb-8">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <Input
                 placeholder="ค้นหาสินค้า..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-12 py-4 text-lg rounded-2xl border-2 border-border/50 focus:border-primary transition-all glass"
               />
             </div>
             
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-muted-foreground" />
+            <div className="flex items-center gap-3">
+              <Filter className="w-5 h-5 text-muted-foreground" />
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-border rounded-lg bg-background text-foreground"
+                className="px-6 py-4 border-2 border-border/50 rounded-2xl bg-background text-foreground font-medium focus:border-primary transition-all glass cursor-pointer"
               >
                 <option value="">ทุกหมวดหมู่</option>
                 {categories.map((category) => (
@@ -241,85 +250,127 @@ const Products = () => {
         </div>
 
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🛒</div>
-            <h3 className="text-xl font-semibold mb-2">ไม่พบสินค้า</h3>
-            <p className="text-muted-foreground">
-              ยังไม่มีสินค้าในระบบ
+          <div className="text-center py-20">
+            <div className="text-8xl mb-6 animate-float">🛒</div>
+            <h3 className="text-3xl font-bold mb-4 text-foreground">ไม่พบสินค้า</h3>
+            <p className="text-xl text-muted-foreground">
+              ยังไม่มีสินค้าในระบบ หรือลองค้นหาด้วยคำอื่น
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {filteredProducts.map((product: any) => (
               <div
                 key={product.id}
-                className="group relative bg-card rounded-2xl border border-border overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-2"
+                className="product-card group"
               >
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
+                <div className="relative h-56 overflow-hidden">
+                  <div className={`relative w-full h-full ${product.stock === 0 ? 'opacity-60' : ''}`}>
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      style={product.stock === 0 ? { filter: 'grayscale(100%)' } : {}}
+                    />
+                    {product.stock === 0 && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <div className="text-white text-2xl font-bold bg-red-600 px-4 py-2 rounded-lg">
+                          สินค้าหมด
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   
-                  <div className="absolute top-3 left-3 flex gap-2">
+                  <div className="absolute top-4 left-4 flex gap-2">
                     {/* HOT Badge สำหรับสินค้าขายดี (stock < 5) */}
                     {product.stock > 0 && product.stock <= 5 && (
-                      <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 font-bold animate-pulse">
+                      <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 font-bold text-sm px-3 py-1 animate-pulse-glow">
                         🔥 HOT
                       </Badge>
                     )}
                   </div>
                   
-                  <div className="absolute top-3 right-3">
+                  <div className="absolute top-4 right-4">
                     <Badge 
                       variant="secondary" 
-                      className={`border-0 ${
+                      className={`border-0 text-sm font-bold px-3 py-1 ${
                         product.stock <= 0 
                           ? 'bg-red-500/90 text-white' 
-                          : 'bg-black/70 text-white'
+                          : 'glass text-white'
                       }`}
                     >
                       {product.stock <= 0 ? 'หมดสต็อก' : `คงเหลือ ${product.stock} ชิ้น`}
                     </Badge>
                   </div>
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
-                  <div className="absolute bottom-4 left-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0">
+                  <div className="absolute bottom-4 left-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
                     <Button
                       onClick={() => handlePurchase(product)}
                       disabled={product.stock <= 0 || !currentUser || userPoints < product.price}
-                      className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 disabled:opacity-50"
+                      className="flex-1 gaming-btn text-base py-3 shimmer"
                     >
-                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      <ShoppingCart className="w-5 h-5 mr-2" />
                       {product.stock <= 0 ? 'หมดสต็อก' : 'ซื้อเลย'}
                     </Button>
-                    <Button variant="secondary" size="icon" className="bg-white/90 hover:bg-white text-black">
-                      <Eye className="w-4 h-4" />
+                    <Button variant="secondary" size="icon" className="glass hover:scale-110 transition-transform" onClick={() => handleReview(product)}>
+                      <Eye className="w-5 h-5" />
                     </Button>
                   </div>
                 </div>
 
                 <div className="p-6">
-                  <div className="mb-2">
-                    <Badge variant="outline" className="text-xs font-medium">
+                  <div className="mb-3">
+                    <Badge variant="outline" className="text-xs font-bold px-3 py-1 border-primary/30">
                       {product.category}
                     </Badge>
                   </div>
                   
-                  <h3 className="font-bold text-lg text-card-foreground mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                  <h3 className="font-bold text-xl text-card-foreground mb-4 line-clamp-2 group-hover:text-primary transition-colors">
                     {product.name}
                   </h3>
                   
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <span className="text-xl font-bold text-primary">฿{product.price.toLocaleString()}</span>
+                      {product.originalPrice && product.originalPrice > product.price && (
+                        <span className="text-sm text-muted-foreground line-through ml-2">
+                          ฿{product.originalPrice.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className={`text-sm font-medium ${
+                        product.stock === 0 
+                          ? 'text-red-500' 
+                          : product.stock < 10 
+                            ? 'text-orange-500' 
+                            : 'text-green-500'
+                      }`}>
+                        {product.stock === 0 
+                          ? 'สินค้าหมด' 
+                          : `คงเหลือ: ${product.stock} ชิ้น`
+                        }
+                      </div>
+                      {product.stock === 0 && (
+                        <div className="text-xs text-red-400 font-medium">
+                          กดซื้อไม่ได้
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-primary">
-                      {product.price.toLocaleString()} พอยต์
+                    <span className="text-2xl font-black text-primary">
+                      {product.price.toLocaleString()} <span className="text-sm font-normal">พอยต์</span>
                     </span>
                     
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm text-muted-foreground">4.8</span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm font-medium text-muted-foreground">4.8</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -342,6 +393,18 @@ const Products = () => {
         onOpenChange={setSuccessDialogOpen}
         orderData={orderResult}
       />
+      
+      {/* Review Dialog */}
+      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>รีวิวสินค้า</DialogTitle>
+          </DialogHeader>
+          {selectedProduct && (
+            <ReviewSystem productId={selectedProduct.id} productName={selectedProduct.name} />
+          )}
+        </DialogContent>
+      </Dialog>
       
       <Footer />
     </div>

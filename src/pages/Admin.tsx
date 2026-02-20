@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -22,30 +23,23 @@ import {
   DollarSign,
   ShoppingCart,
   MessageSquare,
-  Save
+  Save,
+  LogOut
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import apiClient from "@/services/apiClient";
 import { isAuthenticated } from "@/services/authService";
 import { useNavigate } from "react-router-dom";
 import ProductManager from "@/components/admin/ProductManager";
+import OrderManager from "@/components/admin/OrderManager";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
-// TypeScript declaration for window property
-declare global {
-  interface Window {
-    __ADMIN_AUTH_REQUIRED__?: boolean;
-  }
-}
-
-// Admin Key constant - MUST NOT BE REMOVED OR OPTIMIZED OUT
+// Admin Key constant
 const ADMIN_KEY_CONSTANT = "kunlun2026";
-console.log("Admin Key loaded:", ADMIN_KEY_CONSTANT ? "Yes" : "No");
 
 interface User {
   id: string;
   username: string;
-  email: string;
   points: number;
   createdAt: string;
   lastLogin?: string;
@@ -62,8 +56,10 @@ interface StockItem {
   status: 'active' | 'inactive';
   image?: string;
   description?: string;
+  whatYouGet?: string;
   discount?: number;
   tags?: string[];
+  rewards?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -76,17 +72,6 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [announcements, setAnnouncements] = useState<string[]>([]);
   const [announcementText, setAnnouncementText] = useState("");
-  
-  // Force admin key check - ALWAYS require key by default
-  const getAdminKeyStatus = () => {
-    if (typeof window === 'undefined') return false;
-    const saved = sessionStorage.getItem('adminKeyVerified');
-    // Only return true if explicitly verified
-    return saved === ADMIN_KEY_CONSTANT;
-  };
-  
-  const [isAdminKeyVerified, setIsAdminKeyVerified] = useState<boolean>(false); // Start false
-  const [adminKeyInput, setAdminKeyInput] = useState<string>("");
   const [chartData, setChartData] = useState({
     categoryStats: [] as Array<{category: string, sales: number, orders: number}>,
     userGrowth: [] as Array<{month: string, users: number}>,
@@ -98,24 +83,40 @@ const Admin = () => {
     totalRevenue: 0,
     totalOrders: 0
   });
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [newUser, setNewUser] = useState({
+    username: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    points: 0
+  });
 
   useEffect(() => {
+    // Check admin key first
     const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
-    console.log('[DEBUG] Admin.tsx useEffect: savedAdminKey =', savedAdminKey);
+    console.log('[DEBUG] Admin.tsx - Checking admin key:', savedAdminKey ? 'EXISTS' : 'NOT FOUND');
+    
     if (savedAdminKey !== ADMIN_KEY_CONSTANT) {
-      console.log('[DEBUG] Redirecting to /admin-login because admin key not verified');
+      console.log('[DEBUG] Admin key not verified, redirecting to /admin-login');
       navigate("/admin-login");
       return;
     }
 
+    // Check authentication
     if (!isAuthenticated()) {
-      console.log('[DEBUG] Redirecting to /login because user not authenticated');
+      console.log('[DEBUG] User not authenticated, redirecting to /login');
+      toast({
+        title: "กรุณาเข้าสู่ระบบ",
+        description: "คุณต้องเข้าสู่ระบบก่อนเข้าใช้งาน Admin Panel",
+        variant: "destructive"
+      });
       navigate("/login");
       return;
     }
 
-    console.log('[DEBUG] Admin key and user authenticated, loading admin panel');
-    setIsAdminKeyVerified(true);
+    // All checks passed - load data
+    console.log('[DEBUG] All checks passed, loading admin data');
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
@@ -154,9 +155,10 @@ const Admin = () => {
       await loadAnnouncements();
 
     } catch (error) {
+      console.error('[ERROR] Failed to load admin data:', error);
       toast({
-        title: "Error",
-        description: "ไม่สามารถโหลดข้อมูลได้",
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
         variant: "destructive"
       });
     } finally {
@@ -281,30 +283,10 @@ const Admin = () => {
     }
   };
 
-  const handleAdminKeySubmit = () => {
-    if (adminKeyInput.trim() === ADMIN_KEY_CONSTANT) {
-      sessionStorage.setItem('adminKeyVerified', ADMIN_KEY_CONSTANT);
-      setIsAdminKeyVerified(true);
-      loadData();
-      toast({
-        title: "ยืนยันตัวตนสำเร็จ",
-        description: "เข้าสู่ระบบ Admin สำเร็จ",
-      });
-    } else {
-      toast({
-        title: "Admin Key ไม่ถูกต้อง",
-        description: "กรุณาลองใหม่อีกครั้ง",
-        variant: "destructive",
-      });
-      setAdminKeyInput("");
-    }
-  };
-
   const updateUserPoints = async (userId: string, newPoints: number) => {
     try {
       const response = await apiClient.updateUserPoints(userId, newPoints);
       if (response.success) {
-        // Update local state
         setUsers(prev => prev.map(user => 
           user.id === userId ? { ...user, points: newPoints } : user
         ));
@@ -333,7 +315,6 @@ const Admin = () => {
     try {
       const response = await apiClient.deleteUser(userId);
       if (response.success) {
-        // Update local state
         setUsers(prev => prev.filter(user => user.id !== userId));
         setStats(prev => ({ ...prev, totalUsers: prev.totalUsers - 1 }));
         
@@ -353,11 +334,85 @@ const Admin = () => {
     }
   };
 
+  const addUser = async () => {
+    try {
+      // Validate input
+      if (!newUser.username.trim() || !newUser.password.trim()) {
+        toast({
+          title: "Error",
+          description: "กรุณากรอกข้อมูลให้ครบถ้วน",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Check if username already exists
+      const existingUser = users.find(u => u.username === newUser.username);
+      
+      if (existingUser) {
+        toast({
+          title: "Error",
+          description: "ชื่อผู้ใช้นี้ถูกใช้งานแล้ว",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create new user via API
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newUser)
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Add user to local state
+        const createdUser = {
+          id: data.user.id,
+          username: newUser.username,
+          points: newUser.points,
+          createdAt: new Date().toISOString()
+        };
+        
+        setUsers(prev => [...prev, createdUser]);
+        setStats(prev => ({ ...prev, totalUsers: prev.totalUsers + 1 }));
+        
+        // Reset form and close modal
+        setNewUser({
+          username: '',
+          password: '',
+          firstName: '',
+          lastName: '',
+          points: 0
+        });
+        setShowAddUserModal(false);
+        
+        toast({
+          title: "สำเร็จ",
+          description: "เพิ่มผู้ใช้ใหม่แล้ว"
+        });
+      } else {
+        throw new Error(data.message || 'Failed to create user');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "ไม่สามารถเพิ่มผู้ใช้ได้",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleProductUpdate = async (product: StockItem) => {
     try {
       const response = await apiClient.updateProduct(product.id, product);
       if (response.success) {
-        // Reload data to get fresh data from server
         await loadData();
       } else {
         throw new Error(response.message);
@@ -371,7 +426,6 @@ const Admin = () => {
     try {
       const response = await apiClient.createProduct(product);
       if (response.success) {
-        // Reload data to get fresh data from server
         await loadData();
       } else {
         throw new Error(response.message);
@@ -385,7 +439,6 @@ const Admin = () => {
     try {
       const response = await apiClient.deleteProduct(productId);
       if (response.success) {
-        // Reload data to get fresh data from server
         await loadData();
       } else {
         throw new Error(response.message);
@@ -395,16 +448,21 @@ const Admin = () => {
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleLogout = () => {
+    if (confirm('คุณต้องการออกจากระบบ Admin หรือไม่?')) {
+      sessionStorage.removeItem('adminKeyVerified');
+      localStorage.removeItem('token');
+      toast({
+        title: "ออกจากระบบสำเร็จ",
+        description: "คุณได้ออกจากระบบ Admin แล้ว"
+      });
+      navigate('/');
+    }
+  };
 
-  if (!isAdminKeyVerified) {
-    return null; // Render nothing if admin key is not verified
-  }
-  // ...existing code...
-}
+  const filteredUsers = users.filter(user =>
+    user.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -442,6 +500,10 @@ const Admin = () => {
               <Button onClick={() => navigate("/")} variant="outline" size="sm">
                 <Eye className="w-4 h-4 mr-2" />
                 ดูเว็บไซต์
+              </Button>
+              <Button onClick={handleLogout} variant="destructive" size="sm">
+                <LogOut className="w-4 h-4 mr-2" />
+                ออกจากระบบ
               </Button>
             </div>
           </div>
@@ -519,7 +581,7 @@ const Admin = () => {
               จัดการผู้ใช้
             </TabsTrigger>
             <TabsTrigger value="products" className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
+              <Package className="w-4 h-4" />
               จัดการสินค้า
             </TabsTrigger>
             <TabsTrigger value="announcements" className="flex items-center gap-2">
@@ -620,10 +682,16 @@ const Admin = () => {
           <TabsContent value="users" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  จัดการผู้ใช้
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    จัดการผู้ใช้
+                  </CardTitle>
+                  <Button onClick={() => setShowAddUserModal(true)} className="flex items-center gap-2">
+                    <Plus className="w-4 h-4" />
+                    เพิ่มผู้ใช้ใหม่
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -638,7 +706,6 @@ const Admin = () => {
                           </div>
                           <div>
                             <h3 className="font-semibold">{user.username}</h3>
-                            <p className="text-sm text-muted-foreground">{user.email}</p>
                           </div>
                         </div>
                       </div>
@@ -781,6 +848,74 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Add User Modal */}
+      {showAddUserModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>เพิ่มผู้ใช้ใหม่</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="username">ชื่อผู้ใช้</Label>
+                <Input
+                  id="username"
+                  value={newUser.username}
+                  onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                  placeholder="กรอกชื่อผู้ใช้"
+                />
+              </div>
+              <div>
+                <Label htmlFor="password">รหัสผ่าน</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  placeholder="กรอกรหัสผ่าน"
+                />
+              </div>
+              <div>
+                <Label htmlFor="firstName">ชื่อจริง</Label>
+                <Input
+                  id="firstName"
+                  value={newUser.firstName}
+                  onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
+                  placeholder="กรอกชื่อจริง"
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">นามสกุล</Label>
+                <Input
+                  id="lastName"
+                  value={newUser.lastName}
+                  onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
+                  placeholder="กรอกนามสกุล"
+                />
+              </div>
+              <div>
+                <Label htmlFor="points">พอยต์เริ่มต้น</Label>
+                <Input
+                  id="points"
+                  type="number"
+                  value={newUser.points}
+                  onChange={(e) => setNewUser({ ...newUser, points: Number(e.target.value) })}
+                  placeholder="กรอกพอยต์เริ่มต้น"
+                />
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowAddUserModal(false)}>
+                ยกเลิก
+              </Button>
+              <Button onClick={addUser}>
+                เพิ่มผู้ใช้
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

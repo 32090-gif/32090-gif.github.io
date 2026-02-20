@@ -7,6 +7,8 @@ import { getToken, getCurrentUser } from "@/services/authService";
 import { toast } from "sonner";
 import PurchaseConfirmDialog from "@/components/PurchaseConfirmDialog";
 import PurchaseSuccessDialog from "@/components/PurchaseSuccessDialog";
+import ProductDetailDialog from "@/components/home/ProductDetailDialog";
+import ReviewSystem from "@/components/ReviewSystem";
 import { mockProducts } from "@/services/mockData";
 
 const FeaturedProducts = () => {
@@ -18,6 +20,7 @@ const FeaturedProducts = () => {
   // Dialog states
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [orderResult, setOrderResult] = useState<any>(null);
 
@@ -213,7 +216,15 @@ const FeaturedProducts = () => {
                     <ShoppingCart className="w-4 h-4 mr-2" />
                     ซื้อเลย
                   </Button>
-                  <Button variant="secondary" size="icon" className="bg-white/90 hover:bg-white text-black">
+                  <Button 
+                    variant="secondary" 
+                    size="icon" 
+                    className="bg-white/90 hover:bg-white text-black"
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setDetailDialogOpen(true);
+                    }}
+                  >
                     <Eye className="w-4 h-4" />
                   </Button>
                 </div>
@@ -279,6 +290,14 @@ const FeaturedProducts = () => {
         isOpen={successDialogOpen}
         onOpenChange={setSuccessDialogOpen}
         orderData={orderResult}
+      />
+
+      <ProductDetailDialog
+        isOpen={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        product={selectedProduct}
+        userPoints={userPoints}
+        onPurchase={handleAddToCart}
       />
     </section>
   );

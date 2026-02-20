@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./forceRebuild.js"; // Force rebuild
+import DiscordWidget from "@/components/layout/DiscordWidget";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import Categories from "./pages/Categories";
@@ -15,8 +16,10 @@ import Register from "./pages/Register";
 import Topup from "./pages/Topup";
 import Vouchers from "./pages/Vouchers";
 import OrderHistory from "./pages/OrderHistory";
+import GetKey from "./pages/GetKey";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,12 +42,15 @@ const App = () => (
           <Route path="/topup" element={<Topup />} />
           <Route path="/vouchers" element={<Vouchers />} />
           <Route path="/order-history" element={<OrderHistory />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/get-key" element={<GetKey />} />
+          <Route path="/profile" element={<Profile />} />
+<Route path="/admin-login" element={<AdminLogin />} />
+<Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      <DiscordWidget />
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -1,0 +1,46 @@
+{
+  "reviews": [
+    {
+      "id": "1771439664531",
+      "productId": "script-kunlun-premium-7--1771435848062",
+      "userId": "1c6d0c1d-6e85-457c-9fd0-de871b7818f9",
+      "username": "TBSkyen",
+      "rating": 5,
+      "comment": "สคริปโคตรดีอะ",
+      "createdAt": "2026-02-18T18:34:24.531Z",
+      "helpful": 1,
+      "verified": true,
+      "helpfulUsers": [
+        "1c6d0c1d-6e85-457c-9fd0-de871b7818f9"
+      ]
+    },
+    {
+      "id": "1771441338236",
+      "productId": "script-kunlun-premium-7--1771435848062",
+      "userId": "9cb441a0-8167-4bcd-928d-11e8095987c8",
+      "username": "Admin",
+      "rating": 5,
+      "comment": "สินค้าดีมากครับ คุณภาพดี ราคาถูก",
+      "createdAt": "2026-02-18T19:02:18.236Z",
+      "helpful": 16,
+      "verified": true,
+      "helpfulUsers": [
+        "1c6d0c1d-6e85-457c-9fd0-de871b7818f9"
+      ]
+    },
+    {
+      "id": "1771442510173",
+      "productId": "-1771328721371",
+      "userId": "1c6d0c1d-6e85-457c-9fd0-de871b7818f9",
+      "username": "TBSkyen",
+      "rating": 0,
+      "comment": "ddddddddddddd",
+      "createdAt": "2026-02-18T19:21:50.173Z",
+      "helpful": 1,
+      "verified": true,
+      "helpfulUsers": [
+        "1c6d0c1d-6e85-457c-9fd0-de871b7818f9"
+      ]
+    }
+  ]
+}

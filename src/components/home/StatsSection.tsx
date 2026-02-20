@@ -85,21 +85,33 @@ const StatsSection = () => {
   ];
 
   return (
-    <section className="py-12 relative">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+    <section className="py-20 relative">
+      {/* Background decoration */}
+      <div className="absolute inset-0 gaming-pattern opacity-30" />
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-black bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent mb-4 neon-text">
+            สถิติร้านค้า
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            ข้อมูลสถิติที่น่าเชื่อถือจากการใช้งานจริง
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {statsData.map((stat, index) => (
             <div
               key={index}
-              className="stats-card group hover:border-primary/50 transition-all duration-300"
+              className="stats-card group hover:border-primary/50 transition-all duration-500 shimmer"
             >
-              <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
-                <stat.icon className="w-7 h-7 text-white" />
+              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 glow-primary`}>
+                <stat.icon className="w-8 h-8 text-white" />
               </div>
-              <div className="text-2xl md:text-3xl font-bold text-foreground mb-1">
+              <div className="text-3xl md:text-4xl font-black text-foreground mb-2">
                 {stat.value}
               </div>
-              <div className="text-sm text-muted-foreground">{stat.label}</div>
+              <div className="text-base font-medium text-muted-foreground">{stat.label}</div>
             </div>
           ))}
         </div>

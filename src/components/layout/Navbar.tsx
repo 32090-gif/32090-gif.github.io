@@ -1,4 +1,4 @@
-import { ShoppingCart, User, Menu, Search, Gamepad2, Star, LogOut, Package, Settings } from "lucide-react";
+import { ShoppingCart, User, Menu, Search, Gamepad2, Star, LogOut, Package, Settings, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -19,12 +19,16 @@ const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userPoints, setUserPoints] = useState(0);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   const navLinks = [
     { href: "/", label: "หน้าแรก" },
     { href: "/products", label: "สินค้าทั้งหมด" },
     { href: "/categories", label: "หมวดหมู่" },
     { href: "/topup", label: "เติมเงิน" },
+    { href: "/get-key", label: "Get Key" },
   ];
 
   useEffect(() => {
@@ -60,8 +64,14 @@ const Navbar = () => {
       console.log('Current user from storage:', user);
       
       if (user) {
-        setCurrentUser(user);
-        await fetchUserPoints();
+        // Only update user state if different
+        if (!currentUser || user.username !== currentUser.username || user.avatar !== currentUser.avatar) {
+          setCurrentUser(user);
+        }
+        // Only fetch points if we don't have them or if it's the initial load
+        if (userPoints === 0) {
+          await fetchUserPoints();
+        }
       }
     } else {
       console.log('User not authenticated, clearing state');
@@ -88,6 +98,42 @@ const Navbar = () => {
     }
   };
 
+  const searchUsers = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const response = await fetch('/api/admin/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const filteredUsers = data.users.filter((user: any) =>
+          user.username.toLowerCase().startsWith(query.toLowerCase())
+        );
+        setSearchResults(filteredUsers.slice(0, 5)); // Limit to 5 results
+        setShowSearchResults(true);
+      }
+    } catch (error) {
+      console.error('Error searching users:', error);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    searchUsers(query);
+  };
+
   const handleLogout = () => {
     logout();
     setIsAuthenticated(false);
@@ -105,14 +151,14 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <img src="https://hard-pink-jcmsi3qfi2.edgeone.app/Gemini_Generated_Image_a0khsaa0khsaa0kh_1.png" alt="Kunlun Logo" className="w-9 h-9 object-cover rounded transition-all group-hover:scale-105" />
+            <img src="https://i.postimg.cc/09vRGvbC/Gemini-Generated-Image-a0khsaa0khsaa0kh-1.png" alt="Kunlun Logo" className="w-9 h-9 object-cover rounded transition-all group-hover:scale-105" />
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Kunlun Shop
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-12 ml-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -125,13 +171,42 @@ const Navbar = () => {
           </div>
 
           {/* Search Bar - Desktop */}
-          <div className="hidden lg:flex items-center gap-2 flex-1 max-w-md mx-8">
+          <div className="hidden lg:flex items-center gap-2 flex-1 max-w-md mx-8 relative">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="ค้นหาสินค้า..."
+                placeholder="ค้นหาผู้ใช้..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onFocus={() => searchQuery && setShowSearchResults(true)}
+                onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
                 className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
               />
+              
+              {/* Search Results Dropdown */}
+              {showSearchResults && searchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border/50 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                  {searchResults.map((user) => (
+                    <Link
+                      key={user.id}
+                      to={`/profile?user=${user.username}`}
+                      className="flex items-center gap-3 p-3 hover:bg-secondary/50 transition-colors cursor-pointer"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setShowSearchResults(false);
+                      }}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white font-semibold text-sm">
+                        {user.username.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium">{user.username}</div>
+                        <div className="text-sm text-muted-foreground">{user.points.toLocaleString()} พอยต์</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

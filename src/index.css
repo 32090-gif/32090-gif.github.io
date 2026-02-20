@@ -13,7 +13,6 @@
     -webkit-line-clamp: 1;
     line-clamp: 1;
   }
-  
   .line-clamp-2 {
     overflow: hidden;
     display: -webkit-box;
@@ -21,7 +20,6 @@
     -webkit-line-clamp: 2;
     line-clamp: 2;
   }
-  
   .line-clamp-3 {
     overflow: hidden;
     display: -webkit-box;
@@ -31,236 +29,1121 @@
   }
 }
 
-/* 🎮 Gaming Store Design System - Purple/Pink Gradient Theme */
+/*
+  ╔═══════════════════════════════════════════════════════╗
+  ║  KUNLUN SHOP — Layered Atmospheric Theme              ║
+  ║  Concept: Deep space with controlled ambient light    ║
+  ║  3 clear Z-layers: bg / surface / float               ║
+  ║  Accent: Indigo-to-violet (cool, premium, not neon)   ║
+  ╚═══════════════════════════════════════════════════════╝
+*/
+
+/* ─── Fonts ─── */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
 
 @layer base {
   :root {
-    /* Primary gradient colors - Purple to Pink */
-    --gaming-purple: 270 70% 35%;
-    --gaming-purple-light: 280 60% 50%;
-    --gaming-pink: 330 70% 55%;
-    --gaming-pink-light: 340 80% 70%;
-    --gaming-cyan: 190 90% 50%;
-    --gaming-neon: 280 100% 65%;
-    
-    /* Main theme colors */
-    --background: 270 40% 8%;
-    --foreground: 0 0% 95%;
+    /* ── Z-Layer Color System ──────────────────────────────
+       Layer 0 (void)    — deepest bg, #0B0D14
+       Layer 1 (ground)  — section bg, slightly lighter
+       Layer 2 (surface) — card faces, glassy panels
+       Layer 3 (float)   — tooltips, modals, top nav
+    ──────────────────────────────────────────────────────── */
+    --layer-0: 232 22% 7%;    /* #0B0D14 — void black     */
+    --layer-1: 232 18% 10%;   /* #141720 — ground         */
+    --layer-2: 232 15% 14%;   /* #1C1F2E — surface card   */
+    --layer-3: 232 14% 18%;   /* #252838 — floating panel */
 
-    --card: 270 35% 12%;
-    --card-foreground: 0 0% 95%;
+    /* ── Accent — cool indigo/violet ──────────────────────
+       Saturated but NOT electric. Like a studio monitor's
+       power LED, not a neon sign.
+    ──────────────────────────────────────────────────────── */
+    --accent:       245 75% 62%;   /* #5B5CE8 indigo      */
+    --accent-light: 245 80% 72%;   /* #8485F0 light        */
+    --accent-dim:   245 60% 45%;   /* #3E3FA8 dim          */
+    --accent-tint:  245 60% 62%;   /* for glow alpha calcs */
 
-    --popover: 270 35% 12%;
-    --popover-foreground: 0 0% 95%;
+    /* Violet second accent — for gradients & highlights */
+    --violet:       265 70% 65%;   /* #9C6EE8 */
+    --violet-dim:   265 55% 50%;   /* #7040C8 */
 
-    --primary: 280 70% 55%;
-    --primary-foreground: 0 0% 100%;
+    /* ── Neutral text scale ──────────────────────────────── */
+    --text-100: 232  8% 96%;  /* near white   */
+    --text-200: 232  7% 80%;  /* primary text */
+    --text-300: 232  6% 60%;  /* secondary    */
+    --text-400: 232  5% 42%;  /* muted        */
+    --text-500: 232  4% 28%;  /* very muted   */
 
-    --secondary: 270 30% 20%;
-    --secondary-foreground: 0 0% 95%;
+    /* ── Borders ─────────────────────────────────────────── */
+    --border-subtle: 232 14% 18%;  /* between layers      */
+    --border-mid:    232 12% 24%;  /* card border         */
+    --border-light:  232 10% 32%;  /* hover border        */
 
-    --muted: 270 20% 18%;
-    --muted-foreground: 270 10% 60%;
+    /* ── Shadcn token map ───────────────────────────────── */
+    --background:            232 22%  7%;
+    --foreground:            232  8% 96%;
+    --card:                  232 15% 14%;
+    --card-foreground:       232  8% 96%;
+    --popover:               232 14% 18%;
+    --popover-foreground:    232  8% 96%;
+    --primary:               245 75% 62%;
+    --primary-foreground:    0   0% 100%;
+    --secondary:             232 15% 18%;
+    --secondary-foreground:  232  7% 78%;
+    --muted:                 232 15% 14%;
+    --muted-foreground:      232  5% 46%;
+    --accent:                245 75% 62%;
+    --accent-foreground:     0   0% 100%;
+    --destructive:           0  72% 54%;
+    --destructive-foreground:0   0% 100%;
+    --border:                232 14% 20%;
+    --input:                 232 15% 14%;
+    --ring:                  245 75% 62%;
+    --radius:                0.75rem;
 
-    --accent: 330 70% 55%;
-    --accent-foreground: 0 0% 100%;
+    /* Sidebar */
+    --sidebar-background:         232 22%  8%;
+    --sidebar-foreground:         232  7% 88%;
+    --sidebar-primary:            245 75% 62%;
+    --sidebar-primary-foreground: 0   0% 100%;
+    --sidebar-accent:             232 15% 16%;
+    --sidebar-accent-foreground:  232  7% 78%;
+    --sidebar-border:             232 14% 18%;
+    --sidebar-ring:               245 75% 62%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 270 30% 25%;
-    --input: 270 30% 20%;
-    --ring: 280 70% 55%;
-
-    --radius: 0.75rem;
-
-    /* Sidebar colors */
-    --sidebar-background: 270 40% 10%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 280 70% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 270 30% 20%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 270 30% 25%;
-    --sidebar-ring: 280 70% 55%;
-    
-    /* Gaming specific tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(270, 70%, 35%), hsl(330, 70%, 55%));
-    --gradient-secondary: linear-gradient(135deg, hsl(280, 60%, 50%), hsl(340, 80%, 70%));
-    --gradient-glow: linear-gradient(180deg, hsl(280, 100%, 65%), transparent);
-    --shadow-glow: 0 0 30px hsl(280, 70%, 55%, 0.4);
-    --shadow-glow-pink: 0 0 30px hsl(330, 70%, 55%, 0.4);
+    /* ── Shadow tokens ───────────────────────────────────── */
+    --shadow-sm:   0 1px 3px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
+    --shadow-md:   0 4px 16px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.4);
+    --shadow-lg:   0 12px 40px rgba(0,0,0,.65), 0 4px 12px rgba(0,0,0,.5);
+    --shadow-xl:   0 24px 64px rgba(0,0,0,.75), 0 8px 20px rgba(0,0,0,.55);
+    --glow-accent: 0 0 28px hsl(245,75%,62%,.22), 0 0 56px hsl(245,75%,62%,.10);
+    --glow-card:   0 0 40px hsl(245,75%,62%,.14);
   }
 
-  .dark {
-    --background: 270 40% 8%;
-    --foreground: 0 0% 95%;
-
-    --card: 270 35% 12%;
-    --card-foreground: 0 0% 95%;
-
-    --popover: 270 35% 12%;
-    --popover-foreground: 0 0% 95%;
-
-    --primary: 280 70% 55%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 270 30% 20%;
-    --secondary-foreground: 0 0% 95%;
-
-    --muted: 270 20% 18%;
-    --muted-foreground: 270 10% 60%;
-
-    --accent: 330 70% 55%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 270 30% 25%;
-    --input: 270 30% 20%;
-    --ring: 280 70% 55%;
-
-    --sidebar-background: 270 40% 10%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 280 70% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 270 30% 20%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 270 30% 25%;
-    --sidebar-ring: 280 70% 55%;
+  .dark { /* same as root — dark-first design */
+    --background:  232 22%  7%;
+    --foreground:  232  8% 96%;
+    --card:        232 15% 14%;
+    --border:      232 14% 20%;
+    --primary:     245 75% 62%;
+    --ring:        245 75% 62%;
   }
 }
 
+/* ════════════════════════════════════════════════════════
+   BASE
+════════════════════════════════════════════════════════ */
 @layer base {
-  * {
-    @apply border-border;
+  * { @apply border-border; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Prompt', 'Noto Sans Thai', sans-serif;
+    font-family: 'DM Sans', 'Sarabun', 'Noto Sans Thai', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    /* Layer 0: multi-stop radial mesh — creates the "deep space" feel */
+    background-color: hsl(var(--layer-0));
+    background-image:
+      /* Top-left ambient — indigo */
+      radial-gradient(ellipse 70% 55% at 8% 0%,
+        hsl(245, 60%, 28%, 0.45) 0%,
+        transparent 65%),
+      /* Top-right ambient — violet */
+      radial-gradient(ellipse 55% 45% at 92% 5%,
+        hsl(265, 55%, 24%, 0.35) 0%,
+        transparent 60%),
+      /* Center depth */
+      radial-gradient(ellipse 80% 60% at 50% 50%,
+        hsl(232, 22%, 9%, 0) 30%,
+        hsl(232, 22%, 5%, 0.6) 100%);
+    background-attachment: fixed;
+  }
+
+  h1,h2,h3,h4,h5,h6 {
+    font-family: 'Sora', 'Sarabun', 'Noto Sans Thai', sans-serif;
+    font-weight: 700;
+    line-height: 1.18;
+    letter-spacing: -0.03em;
+    color: hsl(var(--text-100));
+  }
+
+  h1 { font-size: clamp(2.4rem, 6vw, 4.5rem); font-weight: 800; }
+  h2 { font-size: clamp(1.6rem, 3.5vw, 2.75rem); }
+  h3 { font-size: clamp(1.15rem, 2.2vw, 1.75rem); }
+
+  p { color: hsl(var(--text-300)); line-height: 1.75; }
+
+  ::selection {
+    background: hsl(245, 75%, 62%, 0.3);
+    color: hsl(var(--text-100));
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--accent));
+    outline-offset: 3px;
+    border-radius: 6px;
   }
 }
 
+/* ════════════════════════════════════════════════════════
+   COMPONENTS
+════════════════════════════════════════════════════════ */
 @layer components {
-  /* Gaming gradient backgrounds */
+
+  /* ── Gradient fills ── */
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(var(--gaming-purple)), hsl(var(--gaming-pink)));
+    background: linear-gradient(135deg, hsl(var(--accent-dim)), hsl(var(--accent)));
   }
-  
   .gradient-secondary {
-    background: linear-gradient(135deg, hsl(var(--gaming-purple-light)), hsl(var(--gaming-pink-light)));
+    background: linear-gradient(135deg, hsl(var(--layer-2)), hsl(var(--layer-3)));
   }
-  
+  .gradient-accent {
+    background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--violet)));
+  }
   .gradient-dark {
-    background: linear-gradient(180deg, hsl(270, 40%, 12%), hsl(270, 40%, 6%));
+    background: hsl(var(--layer-0));
   }
-  
-  /* Glow effects */
-  .glow-primary {
-    box-shadow: 0 0 30px hsl(280, 70%, 55%, 0.4);
-  }
-  
-  .glow-pink {
-    box-shadow: 0 0 30px hsl(330, 70%, 55%, 0.4);
-  }
-  
-  .glow-text {
-    text-shadow: 0 0 20px hsl(280, 100%, 65%, 0.6);
-  }
-  
-  /* Gaming card styles */
+
+  /* ── Glow utilities ── */
+  .glow-primary  { box-shadow: var(--glow-accent); }
+  .glow-cyan     { box-shadow: 0 0 28px hsl(265,70%,65%,.2), 0 0 56px hsl(265,70%,65%,.1); }
+  .glow-accent   { box-shadow: var(--glow-card); }
+  .glow-text     { text-shadow: 0 0 20px hsl(245,80%,72%,.5); }
+
+  /* ────────────────────────────────────────────────────
+     GAMING CARD
+     Layer system: card sits at Layer 2, lifts to Layer 3
+  ──────────────────────────────────────────────────── */
   .gaming-card {
-    @apply bg-card border border-border rounded-xl;
-    background: linear-gradient(145deg, hsl(270, 35%, 14%), hsl(270, 35%, 10%));
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    background:
+      /* Top-edge inner gloss */
+      linear-gradient(180deg,
+        hsl(232, 15%, 18%, 0.8) 0%,
+        hsl(232, 15%, 12%, 0.95) 100%);
+    border: 1px solid hsl(var(--border-mid));
+    border-radius: 1rem;
+    box-shadow: var(--shadow-md),
+                inset 0 1px 0 hsl(0, 0%, 100%, 0.06);
+    backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform    0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.3s ease,
+      box-shadow   0.4s ease;
   }
-  
+
+  /* Inner light edge — gives 3D lift illusion */
+  .gaming-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1rem;
+    background: linear-gradient(135deg,
+      hsl(0,0%,100%, 0.04) 0%,
+      transparent            50%,
+      hsl(0,0%,0%,   0.10) 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Accent sweep line — slides in from left on hover */
+  .gaming-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+      hsl(var(--accent)) 0%,
+      hsl(var(--violet)) 60%,
+      transparent        100%);
+    transform: translateX(-101%);
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    border-radius: 2px 2px 0 0;
+    z-index: 1;
+  }
+
   .gaming-card:hover {
-    box-shadow: 0 0 20px hsl(280, 70%, 55%, 0.3);
-    border-color: hsl(280, 70%, 55%, 0.5);
+    transform: translateY(-6px);
+    border-color: hsl(var(--border-light));
+    box-shadow: var(--shadow-xl), var(--glow-card);
   }
-  
-  /* Gaming button styles */
+
+  .gaming-card:hover::after {
+    transform: translateX(0);
+  }
+
+  /* ────────────────────────────────────────────────────
+     BUTTONS
+  ──────────────────────────────────────────────────── */
+
+  /* Primary — gradient fill with satin sheen */
   .gaming-btn {
-    @apply px-6 py-3 rounded-xl font-semibold text-white transition-all duration-300;
-    background: linear-gradient(135deg, hsl(var(--gaming-purple)), hsl(var(--gaming-pink)));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.75rem;
+    border-radius: 10px;
+    font-family: 'Sora', 'Sarabun', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.01em;
+    color: #fff;
+    background: linear-gradient(135deg,
+      hsl(var(--accent-dim))  0%,
+      hsl(var(--accent))      50%,
+      hsl(var(--violet-dim))  100%);
+    background-size: 200% 100%;
+    border: 1px solid hsl(245, 75%, 55%, 0.5);
+    box-shadow: 0 4px 14px hsl(245, 75%, 62%, 0.28),
+                inset 0 1px 0 hsl(0,0%,100%,.15);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition:
+      background-position 0.4s ease,
+      transform           0.25s cubic-bezier(0.22,1,0.36,1),
+      box-shadow          0.3s ease;
   }
-  
+
+  .gaming-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -75%;
+    width: 50%; height: 200%;
+    background: linear-gradient(105deg,
+      transparent, hsl(0,0%,100%,.18), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.5s cubic-bezier(0.22,1,0.36,1);
+  }
+
   .gaming-btn:hover {
+    background-position: 100% 0;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px hsl(280, 70%, 55%, 0.4);
+    box-shadow: 0 8px 28px hsl(245,75%,62%,.4),
+                inset 0 1px 0 hsl(0,0%,100%,.2);
   }
-  
-  /* Animated background pattern */
+
+  .gaming-btn:hover::before { left: 125%; }
+
+  .gaming-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px hsl(245,75%,62%,.3);
+  }
+
+  /* Ghost */
+  .gaming-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.75rem;
+    border-radius: 10px;
+    font-family: 'Sora', 'Sarabun', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: hsl(var(--text-200));
+    background: hsl(var(--layer-2));
+    border: 1px solid hsl(var(--border-mid));
+    cursor: pointer;
+    transition:
+      background  0.25s ease,
+      border-color 0.25s ease,
+      color       0.25s ease,
+      transform   0.25s ease;
+  }
+
+  .gaming-btn-ghost:hover {
+    background: hsl(var(--layer-3));
+    border-color: hsl(var(--border-light));
+    color: hsl(var(--text-100));
+    transform: translateY(-2px);
+  }
+
+  /* ────────────────────────────────────────────────────
+     BACKGROUND PATTERN — subtle hex grid
+  ──────────────────────────────────────────────────── */
   .gaming-pattern {
-    background-image: 
-      radial-gradient(circle at 20% 80%, hsl(280, 70%, 55%, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, hsl(330, 70%, 55%, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, hsl(190, 90%, 50%, 0.05) 0%, transparent 30%);
+    background-image:
+      /* Fine dot grid */
+      radial-gradient(hsl(245,60%,70%, 0.07) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
-  
-  /* Stats card */
+
+  /* ────────────────────────────────────────────────────
+     STATS CARD — Per-card color via nth-child
+     No HTML class changes needed.
+     Order: 1=Indigo  2=Rose  3=Teal  4=Emerald
+     5th+ loops back via 4n pattern
+  ──────────────────────────────────────────────────── */
   .stats-card {
-    @apply p-6 rounded-xl text-center;
-    background: linear-gradient(145deg, hsl(270, 35%, 15%), hsl(270, 35%, 10%));
-    border: 1px solid hsl(270, 30%, 25%);
+    padding: 1.75rem 2rem;
+    border-radius: 1rem;
+    background: linear-gradient(160deg,
+      hsl(232, 16%, 16%) 0%,
+      hsl(232, 18%, 11%) 100%);
+    border: 1px solid hsl(var(--border-mid));
+    box-shadow: var(--shadow-md),
+                inset 0 1px 0 hsl(0,0%,100%,.05);
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform    0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow   0.35s ease,
+      border-color 0.3s ease;
   }
-  
-  /* Product card */
+
+  /* Top accent bar — slides in on hover */
+  .stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 2;
+  }
+
+  /* Corner ambient glow */
+  .stats-card::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; right: -40px;
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    filter: blur(45px);
+    opacity: 0.45;
+    pointer-events: none;
+    transition: opacity 0.35s ease, transform 0.4s ease;
+  }
+
+  .stats-card:hover {
+    transform: translateY(-5px);
+  }
+  .stats-card:hover::before {
+    transform: scaleX(1);
+  }
+  .stats-card:hover::after {
+    opacity: 0.8;
+    transform: scale(1.2);
+  }
+
+  /* ── 1st card — INDIGO (สมาชิก) ── */
+  .stats-card:nth-child(4n+1) {
+    border-color: hsl(245, 50%, 35%, 0.45);
+  }
+  .stats-card:nth-child(4n+1)::before {
+    background: linear-gradient(90deg,
+      hsl(245, 85%, 65%), hsl(265, 75%, 65%), transparent);
+  }
+  .stats-card:nth-child(4n+1)::after {
+    background: hsl(245, 80%, 58%);
+  }
+  .stats-card:nth-child(4n+1):hover {
+    border-color: hsl(245, 55%, 45%, 0.7);
+    box-shadow: var(--shadow-lg), 0 0 36px hsl(245, 75%, 62%, 0.2);
+  }
+
+  /* ── 2nd card — ROSE (ยอดเติม) ── */
+  .stats-card:nth-child(4n+2) {
+    border-color: hsl(340, 55%, 35%, 0.45);
+  }
+  .stats-card:nth-child(4n+2)::before {
+    background: linear-gradient(90deg,
+      hsl(340, 85%, 62%), hsl(15, 80%, 60%), transparent);
+  }
+  .stats-card:nth-child(4n+2)::after {
+    background: hsl(340, 80%, 56%);
+  }
+  .stats-card:nth-child(4n+2):hover {
+    border-color: hsl(340, 55%, 45%, 0.7);
+    box-shadow: var(--shadow-lg), 0 0 36px hsl(340, 75%, 58%, 0.2);
+  }
+
+  /* ── 3rd card — TEAL (สินค้า) ── */
+  .stats-card:nth-child(4n+3) {
+    border-color: hsl(185, 55%, 25%, 0.45);
+  }
+  .stats-card:nth-child(4n+3)::before {
+    background: linear-gradient(90deg,
+      hsl(185, 80%, 48%), hsl(160, 70%, 45%), transparent);
+  }
+  .stats-card:nth-child(4n+3)::after {
+    background: hsl(185, 80%, 40%);
+  }
+  .stats-card:nth-child(4n+3):hover {
+    border-color: hsl(185, 55%, 38%, 0.7);
+    box-shadow: var(--shadow-lg), 0 0 36px hsl(185, 70%, 48%, 0.2);
+  }
+
+  /* ── 4th card — EMERALD (เติมเงิน) ── */
+  .stats-card:nth-child(4n+4) {
+    border-color: hsl(152, 55%, 25%, 0.45);
+  }
+  .stats-card:nth-child(4n+4)::before {
+    background: linear-gradient(90deg,
+      hsl(152, 80%, 45%), hsl(130, 70%, 48%), transparent);
+  }
+  .stats-card:nth-child(4n+4)::after {
+    background: hsl(152, 75%, 38%);
+  }
+  .stats-card:nth-child(4n+4):hover {
+    border-color: hsl(152, 55%, 38%, 0.7);
+    box-shadow: var(--shadow-lg), 0 0 36px hsl(152, 70%, 45%, 0.2);
+  }
+
+  /* ── Icon color per position ──────────────────────────
+     Target the icon wrapper inside each nth card.
+     Assumes icon is the first child element.
+  ──────────────────────────────────────────────────── */
+  .stats-card:nth-child(4n+1) > *:first-child {
+    background: linear-gradient(135deg,
+      hsl(245, 70%, 48%) 0%, hsl(265, 65%, 58%) 100%) !important;
+    box-shadow: 0 4px 16px hsl(245, 75%, 58%, 0.4),
+                inset 0 1px 0 hsl(0,0%,100%,.2);
+  }
+  .stats-card:nth-child(4n+2) > *:first-child {
+    background: linear-gradient(135deg,
+      hsl(335, 75%, 48%) 0%, hsl(15, 70%, 55%) 100%) !important;
+    box-shadow: 0 4px 16px hsl(340, 75%, 55%, 0.4),
+                inset 0 1px 0 hsl(0,0%,100%,.2);
+  }
+  .stats-card:nth-child(4n+3) > *:first-child {
+    background: linear-gradient(135deg,
+      hsl(190, 75%, 35%) 0%, hsl(162, 65%, 38%) 100%) !important;
+    box-shadow: 0 4px 16px hsl(185, 70%, 42%, 0.4),
+                inset 0 1px 0 hsl(0,0%,100%,.2);
+  }
+  .stats-card:nth-child(4n+4) > *:first-child {
+    background: linear-gradient(135deg,
+      hsl(152, 70%, 32%) 0%, hsl(130, 65%, 38%) 100%) !important;
+    box-shadow: 0 4px 16px hsl(152, 65%, 38%, 0.4),
+                inset 0 1px 0 hsl(0,0%,100%,.2);
+  }
+
+  /* ── Large stat number color per position ─────────────
+     Targets the prominent number text inside each card.
+     Works if number is in <p>, <span>, <h3> etc.
+     Selector: direct children that are not the icon.
+  ──────────────────────────────────────────────────── */
+  .stats-card:nth-child(4n+1) .stats-number,
+  .stats-card:nth-child(4n+1) h3,
+  .stats-card:nth-child(4n+1) [class*="number"],
+  .stats-card:nth-child(4n+1) [class*="value"] {
+    color: hsl(245, 80%, 82%);
+  }
+  .stats-card:nth-child(4n+2) .stats-number,
+  .stats-card:nth-child(4n+2) h3,
+  .stats-card:nth-child(4n+2) [class*="number"],
+  .stats-card:nth-child(4n+2) [class*="value"] {
+    color: hsl(340, 80%, 80%);
+  }
+  .stats-card:nth-child(4n+3) .stats-number,
+  .stats-card:nth-child(4n+3) h3,
+  .stats-card:nth-child(4n+3) [class*="number"],
+  .stats-card:nth-child(4n+3) [class*="value"] {
+    color: hsl(185, 75%, 74%);
+  }
+  .stats-card:nth-child(4n+4) .stats-number,
+  .stats-card:nth-child(4n+4) h3,
+  .stats-card:nth-child(4n+4) [class*="number"],
+  .stats-card:nth-child(4n+4) [class*="value"] {
+    color: hsl(152, 72%, 70%);
+  }
+
+  /* ────────────────────────────────────────────────────
+     PRODUCT CARD — Layer 2+, image-first
+  ──────────────────────────────────────────────────── */
   .product-card {
-    @apply rounded-xl overflow-hidden transition-all duration-300;
-    background: linear-gradient(145deg, hsl(270, 35%, 14%), hsl(270, 35%, 10%));
-    border: 1px solid hsl(270, 30%, 20%);
+    border-radius: 1rem;
+    overflow: hidden;
+    background: hsl(var(--layer-2));
+    border: 1px solid hsl(var(--border-mid));
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    transition:
+      transform    0.4s cubic-bezier(0.22,1,0.36,1),
+      border-color 0.3s ease,
+      box-shadow   0.4s ease;
   }
-  
+
+  /* Gradient overlay on bottom — text readability */
+  .product-card > .product-image-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 60%;
+    background: linear-gradient(to top, hsl(232,18%,10%) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  /* Accent bar from bottom-left, not top */
+  .product-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 3px; height: 0;
+    background: linear-gradient(to top, hsl(var(--accent)), hsl(var(--violet)));
+    transition: height 0.4s cubic-bezier(0.22,1,0.36,1);
+    border-radius: 0 3px 0 1rem;
+    z-index: 2;
+  }
+
   .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-    border-color: hsl(280, 70%, 55%, 0.5);
+    transform: translateY(-6px) scale(1.015);
+    border-color: hsl(245, 40%, 35%, 0.5);
+    box-shadow: var(--shadow-xl), var(--glow-card);
+  }
+
+  .product-card:hover::before { height: 100%; }
+
+  /* ────────────────────────────────────────────────────
+     GLASS PANEL — Layer 3 (nav, modals, dropdowns)
+  ──────────────────────────────────────────────────── */
+  .glass {
+    background: hsl(232, 20%, 9%, 0.72);
+    backdrop-filter: blur(24px) saturate(1.6);
+    border: 1px solid hsl(232, 14%, 22%, 0.7);
+    box-shadow: 0 8px 32px rgba(0,0,0,.4),
+                inset 0 1px 0 hsl(0,0%,100%,.06);
+  }
+
+  /* ── Neon text — restrained */
+  .neon-text {
+    color: hsl(var(--accent-light));
+    text-shadow:
+      0 0 16px hsl(245,80%,72%,.4),
+      0 0 32px hsl(245,80%,72%,.15);
+  }
+
+  /* ── Float ── */
+  .float-animation { animation: floatUp 7s ease-in-out infinite; }
+
+  @keyframes floatUp {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-12px); }
+  }
+
+  /* ────────────────────────────────────────────────────
+     EYEBROW / SECTION LABEL
+  ──────────────────────────────────────────────────── */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(var(--accent-light));
+    margin-bottom: 0.875rem;
+  }
+
+  .eyebrow::before {
+    content: '';
+    display: block;
+    width: 18px; height: 2px;
+    background: linear-gradient(90deg, hsl(var(--accent)), hsl(var(--violet)));
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+
+  /* ────────────────────────────────────────────────────
+     BADGE
+  ──────────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.22rem 0.7rem;
+    border-radius: 100px;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    background: hsl(var(--layer-3));
+    color: hsl(var(--text-300));
+    border: 1px solid hsl(var(--border-subtle));
+  }
+
+  .badge-accent {
+    background: hsl(245, 75%, 62%, 0.14);
+    color: hsl(var(--accent-light));
+    border-color: hsl(245, 75%, 62%, 0.24);
+  }
+
+  .badge-new {
+    background: linear-gradient(135deg, hsl(245,75%,62%,.18), hsl(265,70%,65%,.18));
+    color: hsl(var(--violet));
+    border-color: hsl(265, 60%, 55%, 0.3);
+  }
+
+  /* ────────────────────────────────────────────────────
+     INPUT
+  ──────────────────────────────────────────────────── */
+  .input-clean {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border-radius: 0.625rem;
+    background: hsl(var(--layer-2));
+    border: 1px solid hsl(var(--border-mid));
+    color: hsl(var(--text-100));
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9375rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+
+  .input-clean::placeholder { color: hsl(var(--text-400)); }
+
+  .input-clean:focus {
+    background: hsl(var(--layer-3));
+    border-color: hsl(245, 75%, 62%, 0.65);
+    box-shadow: 0 0 0 3px hsl(245, 75%, 62%, 0.12);
+  }
+
+  /* ────────────────────────────────────────────────────
+     DIVIDERS
+  ──────────────────────────────────────────────────── */
+  .rule {
+    border: none;
+    border-top: 1px solid hsl(var(--border-subtle));
+  }
+
+  .divider-ornament {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: hsl(var(--text-400));
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .divider-ornament::before,
+  .divider-ornament::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent, hsl(var(--border-mid)), transparent);
+  }
+
+  /* ── Nav item ── */
+  .nav-item {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(var(--text-300));
+    padding: 0.45rem 0.875rem;
+    border-radius: 8px;
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+
+  .nav-item:hover {
+    color: hsl(var(--text-100));
+    background: hsl(var(--layer-2));
+  }
+
+  .nav-item.active {
+    color: hsl(var(--text-100));
+    background: hsl(245, 75%, 62%, 0.12);
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+/* ════════════════════════════════════════════════════════
+   SCROLLBAR
+════════════════════════════════════════════════════════ */
+::-webkit-scrollbar        { width: 6px; }
+::-webkit-scrollbar-track  { background: hsl(var(--layer-0)); }
+::-webkit-scrollbar-thumb  {
+  background: linear-gradient(180deg, hsl(var(--accent-dim)), hsl(var(--violet-dim)));
+  border-radius: 100px;
 }
-
-::-webkit-scrollbar-track {
-  background: hsl(270, 40%, 10%);
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, hsl(280, 70%, 55%), hsl(330, 70%, 55%));
-  border-radius: 4px;
-}
-
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, hsl(280, 70%, 65%), hsl(330, 70%, 65%));
+  background: linear-gradient(180deg, hsl(var(--accent)), hsl(var(--violet)));
 }
 
-/* Background Pattern */
+/* ════════════════════════════════════════════════════════
+   BACKGROUND TEXTURE
+════════════════════════════════════════════════════════ */
 .bg-pattern {
-  background-image: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
-                    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 2px, transparent 2px);
-  background-size: 50px 50px;
+  background-image:
+    radial-gradient(hsl(245,60%,70%, 0.065) 1px, transparent 1px),
+    radial-gradient(hsl(265,55%,65%, 0.04)  1px, transparent 1px);
+  background-size: 32px 32px, 64px 64px;
+  background-position: 0 0, 16px 16px;
 }
 
-/* Modern animations */
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+/* ════════════════════════════════════════════════════════
+   ANIMATION UTILITIES
+════════════════════════════════════════════════════════ */
+.animate-float      { animation: floatUp 7s ease-in-out infinite; }
+.animate-pulse-slow { animation: pulse 5s cubic-bezier(0.4,0,0.6,1) infinite; }
+.animate-spin-slow  { animation: spin 5s linear infinite; }
+
+.animate-pulse-glow {
+  animation: pulseGlowAccent 3s ease-in-out infinite;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+@keyframes pulseGlowAccent {
+  0%,100% { box-shadow: 0 0 0 0 hsl(245,75%,62%,0),
+                        0 4px 14px hsl(245,75%,62%,.25); }
+  50%     { box-shadow: 0 0 0 8px hsl(245,75%,62%,.08),
+                        0 4px 14px hsl(245,75%,62%,.4); }
 }
 
-.animate-pulse-slow {
-  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+/* Staggered entrance — use with animation-delay on children */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.animate-spin-slow {
-  animation: spin 3s linear infinite;
+.animate-fade-up {
+  animation: fadeSlideUp 0.55s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* Shimmer / skeleton */
+.shimmer { position: relative; overflow: hidden; }
+
+.shimmer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg,
+    transparent            10%,
+    hsl(0,0%,100%,.05)     45%,
+    hsl(0,0%,100%,.09)     50%,
+    hsl(0,0%,100%,.05)     55%,
+    transparent            90%);
+  animation: shimmerMove 2s ease-in-out infinite;
+}
+
+@keyframes shimmerMove {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ── Particles ── */
+.particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: particleFloat 30s linear infinite;
+}
+
+/* Size & color variants via nth-child */
+.particle:nth-child(odd) {
+  width: 1.5px; height: 1.5px;
+  background: hsl(245, 80%, 75%, 0.3);
+}
+.particle:nth-child(even) {
+  width: 2px; height: 2px;
+  background: hsl(265, 70%, 70%, 0.2);
+}
+.particle:nth-child(3n) {
+  width: 1px; height: 1px;
+  background: hsl(245, 60%, 82%, 0.45);
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(100vh) translateX(0px);
+    opacity: 0;
+  }
+  6%  { opacity: 1; }
+  94% { opacity: 1; }
+  100% {
+    transform: translateY(-100vh) translateX(40px);
+    opacity: 0;
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   STAT CARD — Per-color system
+   4 unique palettes, each with:
+     - border tint
+     - corner ambient glow
+     - icon container gradient
+     - number color
+     - top accent line
+════════════════════════════════════════════════════════ */
+
+/* ── Base stat card reset (shared structure) ── */
+.stat-card {
+  padding: 1.5rem 1.75rem;
+  border-radius: 1rem;
+  border: 1px solid;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg,
+    hsl(232, 16%, 15%) 0%,
+    hsl(232, 18%, 11%) 100%);
+  box-shadow: var(--shadow-md),
+              inset 0 1px 0 hsl(0, 0%, 100%, 0.05);
+  transition:
+    transform    0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow   0.35s ease,
+    border-color 0.3s ease;
+}
+
+/* Top accent line */
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  transition: opacity 0.3s ease;
+  opacity: 0.7;
+}
+
+/* Corner ambient glow blob */
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; right: -40px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.4s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-card:hover::before { opacity: 1; }
+.stat-card:hover::after  { opacity: 0.85; transform: scale(1.2); }
+
+/* ── Icon container ── */
+.stat-icon {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.1rem;
+  font-size: 1.35rem;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 4px 16px rgba(0,0,0,.35),
+              inset 0 1px 0 hsl(0,0%,100%,.2);
+  flex-shrink: 0;
+}
+
+/* ── Stat number ── */
+.stat-number {
+  font-family: 'Sora', 'Sarabun', sans-serif;
+  font-size: clamp(1.75rem, 3.5vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  display: block;
+  margin-bottom: 0.35rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Stat label ── */
+.stat-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: hsl(232, 6%, 52%);
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.01em;
+}
+
+/* ════════════════════════════
+   COLOR 1 — INDIGO / สมาชิก
+   Indigo + violet
+════════════════════════════ */
+.stat-card--indigo {
+  border-color: hsl(245, 50%, 35%, 0.5);
+}
+
+.stat-card--indigo::before {
+  background: linear-gradient(90deg,
+    hsl(245, 85%, 65%) 0%,
+    hsl(265, 75%, 65%) 60%,
+    transparent        100%);
+}
+
+.stat-card--indigo::after {
+  background: hsl(245, 80%, 58%);
+}
+
+.stat-card--indigo:hover {
+  border-color: hsl(245, 55%, 45%, 0.7);
+  box-shadow: var(--shadow-lg),
+    0 0 32px hsl(245, 75%, 62%, 0.2);
+}
+
+.stat-card--indigo .stat-icon {
+  background: linear-gradient(135deg,
+    hsl(245, 70%, 48%) 0%,
+    hsl(265, 65%, 58%) 100%);
+}
+
+.stat-card--indigo .stat-number {
+  color: hsl(245, 80%, 80%);
+}
+
+/* ════════════════════════════
+   COLOR 2 — ROSE / ยอดเติม
+   Warm rose + pink
+════════════════════════════ */
+.stat-card--rose {
+  border-color: hsl(340, 55%, 38%, 0.5);
+}
+
+.stat-card--rose::before {
+  background: linear-gradient(90deg,
+    hsl(340, 85%, 62%) 0%,
+    hsl(15,  80%, 60%) 60%,
+    transparent         100%);
+}
+
+.stat-card--rose::after {
+  background: hsl(340, 80%, 58%);
+}
+
+.stat-card--rose:hover {
+  border-color: hsl(340, 55%, 48%, 0.7);
+  box-shadow: var(--shadow-lg),
+    0 0 32px hsl(340, 75%, 58%, 0.2);
+}
+
+.stat-card--rose .stat-icon {
+  background: linear-gradient(135deg,
+    hsl(335, 75%, 48%) 0%,
+    hsl(15,  70%, 55%) 100%);
+}
+
+.stat-card--rose .stat-number {
+  color: hsl(340, 80%, 78%);
+}
+
+/* ════════════════════════════
+   COLOR 3 — TEAL / สินค้า
+   Cyan + teal
+════════════════════════════ */
+.stat-card--teal {
+  border-color: hsl(185, 55%, 28%, 0.5);
+}
+
+.stat-card--teal::before {
+  background: linear-gradient(90deg,
+    hsl(185, 80%, 48%) 0%,
+    hsl(160, 70%, 45%) 60%,
+    transparent         100%);
+}
+
+.stat-card--teal::after {
+  background: hsl(185, 80%, 42%);
+}
+
+.stat-card--teal:hover {
+  border-color: hsl(185, 55%, 38%, 0.7);
+  box-shadow: var(--shadow-lg),
+    0 0 32px hsl(185, 70%, 48%, 0.2);
+}
+
+.stat-card--teal .stat-icon {
+  background: linear-gradient(135deg,
+    hsl(190, 75%, 35%) 0%,
+    hsl(162, 65%, 38%) 100%);
+}
+
+.stat-card--teal .stat-number {
+  color: hsl(185, 75%, 72%);
+}
+
+/* ════════════════════════════
+   COLOR 4 — EMERALD / เติมเงิน
+   Green + lime
+════════════════════════════ */
+.stat-card--emerald {
+  border-color: hsl(152, 55%, 28%, 0.5);
+}
+
+.stat-card--emerald::before {
+  background: linear-gradient(90deg,
+    hsl(152, 80%, 45%) 0%,
+    hsl(130, 70%, 48%) 60%,
+    transparent         100%);
+}
+
+.stat-card--emerald::after {
+  background: hsl(152, 75%, 40%);
+}
+
+.stat-card--emerald:hover {
+  border-color: hsl(152, 55%, 38%, 0.7);
+  box-shadow: var(--shadow-lg),
+    0 0 32px hsl(152, 70%, 45%, 0.2);
+}
+
+.stat-card--emerald .stat-icon {
+  background: linear-gradient(135deg,
+    hsl(152, 70%, 32%) 0%,
+    hsl(130, 65%, 38%) 100%);
+}
+
+.stat-card--emerald .stat-number {
+  color: hsl(152, 72%, 68%);
+}
+
+/* ════════════════════════════
+   AMBER variant (bonus / optional)
+   ยอดขาย / รายได้
+════════════════════════════ */
+.stat-card--amber {
+  border-color: hsl(38, 65%, 35%, 0.5);
+}
+
+.stat-card--amber::before {
+  background: linear-gradient(90deg,
+    hsl(38, 92%, 55%) 0%,
+    hsl(20, 85%, 52%) 60%,
+    transparent        100%);
+}
+
+.stat-card--amber::after {
+  background: hsl(38, 88%, 50%);
+}
+
+.stat-card--amber:hover {
+  border-color: hsl(38, 65%, 45%, 0.7);
+  box-shadow: var(--shadow-lg),
+    0 0 32px hsl(38, 85%, 52%, 0.2);
+}
+
+.stat-card--amber .stat-icon {
+  background: linear-gradient(135deg,
+    hsl(38, 80%, 40%) 0%,
+    hsl(20, 75%, 45%) 100%);
+}
+
+.stat-card--amber .stat-number {
+  color: hsl(38, 88%, 72%);
 }

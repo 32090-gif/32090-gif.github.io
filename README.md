@@ -14,7 +14,7 @@
 ```sh
 # Clone โปรเจกต์
 git clone <repository-url>
-cd Slumzick
+cd Kunlun
 
 # ติดตั้ง dependencies
 npm install

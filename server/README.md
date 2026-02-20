@@ -1,4 +1,4 @@
-# Slumzick API Documentation
+# Kunlun API Documentation
 
 ## 🚀 API Endpoints
 
@@ -17,7 +17,7 @@ GET /api/health
 ```json
 {
   "status": "OK",
-  "message": "Slumzick API is running",
+  "message": "Kunlun API is running",
   "timestamp": "2026-02-08T10:30:00.000Z"
 }
 ```

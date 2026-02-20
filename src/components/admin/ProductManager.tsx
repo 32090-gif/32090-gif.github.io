@@ -47,8 +47,10 @@ interface Product {
   status: "active" | "inactive";
   image?: string;
   description?: string;
+  whatYouGet?: string;
   discount?: number;
   tags?: string[];
+  rewards?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -76,11 +78,14 @@ const ProductManager: React.FC<ProductManagerProps> = ({
     stock: 0,
     image: "",
     description: "",
+    whatYouGet: "",
+    rewards: [],
     status: "active",
     discount: 0,
     tags: []
   });
   const [tagsInput, setTagsInput] = useState("");
+  const [rewardsInput, setRewardsInput] = useState("");
   const [loading, setLoading] = useState(false);
 
   const categories = [
@@ -100,11 +105,14 @@ const ProductManager: React.FC<ProductManagerProps> = ({
       stock: 0,
       image: "",
       description: "",
+      whatYouGet: "",
+      rewards: [],
       status: "active",
       discount: 0,
       tags: []
     });
     setTagsInput("");
+    setRewardsInput("");
     setEditingProduct(null);
   };
 
@@ -119,6 +127,7 @@ const ProductManager: React.FC<ProductManagerProps> = ({
       ...product
     });
     setTagsInput(product.tags.join(", "));
+    setRewardsInput(product.rewards.join(", "));
     setIsDialogOpen(true);
   };
 
@@ -133,6 +142,12 @@ const ProductManager: React.FC<ProductManagerProps> = ({
     setTagsInput(value);
     const tagsArray = value.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0);
     handleInputChange("tags", tagsArray);
+  };
+
+  const handleRewardsChange = (value: string) => {
+    setRewardsInput(value);
+    const rewardsArray = value.split(",").map(reward => reward.trim()).filter(reward => reward.length > 0);
+    handleInputChange("rewards", rewardsArray);
   };
 
   const generateId = (name: string): string => {
@@ -156,10 +171,10 @@ const ProductManager: React.FC<ProductManagerProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.category || !formData.price) {
+    if (!formData.name || !formData.category || !formData.price || !formData.whatYouGet) {
       toast({
         title: "ข้อมูลไม่ครบถ้วน",
-        description: "กรุณากรอกชื่อสินค้า หมวดหมู่ และราคา",
+        description: "กรุณากรอกชื่อสินค้า หมวดหมู่ ราคา และสิ่งที่จะได้รับ",
         variant: "destructive"
       });
       return;
@@ -388,6 +403,24 @@ const ProductManager: React.FC<ProductManagerProps> = ({
                   </div>
 
                   <div>
+                    <Label htmlFor="whatYouGet" className="flex items-center gap-2">
+                      <Package className="w-4 h-4" />
+                      สิ่งที่จะได้รับ *
+                    </Label>
+                    <Textarea
+                      id="whatYouGet"
+                      value={formData.whatYouGet || ""}
+                      onChange={(e) => handleInputChange("whatYouGet", e.target.value)}
+                      placeholder="ระบุสิ่งที่ลูกค้าจะได้รับหลังการซื้อ...\n\nตัวอย่าง:\n- Steam Wallet Code 20 USD\n- รับได้ทันทีหลังการชำระเงิน\n- ส่งผ่านอีเมล์และระบบ"
+                      rows={4}
+                      className="border-orange-200 focus:border-orange-400"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      ระบุรายละเอียดสิ่งที่ลูกค้าจะได้รับหลังการซื้อสินค้านี้
+                    </p>
+                  </div>
+
+                  <div>
                     <Label htmlFor="tags">แท็ก (คั่นด้วยจุลภาค)</Label>
                     <Input
                       id="tags"
@@ -400,6 +433,32 @@ const ProductManager: React.FC<ProductManagerProps> = ({
                         {formData.tags.map((tag, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
                             {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="rewards" className="flex items-center gap-2">
+                      <Package className="w-4 h-4" />
+                      รางวัลที่สุ่มได้ (คั่นด้วยจุลภาค)
+                    </Label>
+                    <Input
+                      id="rewards"
+                      value={rewardsInput}
+                      onChange={(e) => handleRewardsChange(e.target.value)}
+                      placeholder="VIP1, VIP2, VIP3, PREMIUM"
+                      className="border-purple-200 focus:border-purple-400"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      ระบุรางวัลที่ลูกค้าสามารถสุ่มได้ (ถ้ามี)
+                    </p>
+                    {formData.rewards && formData.rewards.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {formData.rewards.map((reward, index) => (
+                          <Badge key={index} variant="outline" className="text-xs border-purple-300 text-purple-600">
+                            🎁 {reward}
                           </Badge>
                         ))}
                       </div>
@@ -467,6 +526,12 @@ const ProductManager: React.FC<ProductManagerProps> = ({
                         <Badge variant="secondary">{product.category}</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">{product.description}</p>
+                      {product.whatYouGet && (
+<div className="bg-white/5 border border-white/10 rounded-lg p-3 mb-2">
+  <p className="text-xs font-semibold text-slate-400 mb-1">สิ่งที่จะได้รับ:</p>
+  <p className="text-xs text-slate-300 whitespace-pre-line">{product.whatYouGet}</p>
+</div>
+                      )}
                       <div className="flex items-center gap-4 text-sm">
                         <span className="font-bold text-primary">฿{product.price.toLocaleString()}</span>
                         {product.originalPrice > product.price && (
@@ -486,6 +551,23 @@ const ProductManager: React.FC<ProductManagerProps> = ({
                               {tag}
                             </Badge>
                           ))}
+                        </div>
+                      )}
+                      {product.rewards && product.rewards.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          <Badge variant="outline" className="text-xs border-purple-300 text-purple-600">
+                            🎁 สุ่มได้ {product.rewards.length} รางวัล
+                          </Badge>
+                          {product.rewards.slice(0, 3).map((reward, index) => (
+                            <Badge key={index} variant="outline" className="text-xs border-purple-200 text-purple-500">
+                              {reward}
+                            </Badge>
+                          ))}
+                          {product.rewards.length > 3 && (
+                            <Badge variant="outline" className="text-xs text-purple-400">
+                              +{product.rewards.length - 3}
+                            </Badge>
+                          )}
                         </div>
                       )}
                     </div>

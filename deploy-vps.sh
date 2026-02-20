@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Slumzick VPS Deployment Script
-echo "🚀 Starting Slumzick deployment on VPS..."
+# Kunlun VPS Deployment Script
+echo "🚀 Starting Kunlun deployment on VPS..."
 
 # Check if .env.production exists
 if [ ! -f ".env.production" ]; then
