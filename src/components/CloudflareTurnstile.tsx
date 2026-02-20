@@ -6,7 +6,46 @@ const CloudflareTurnstile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [isVerifyingToken, setIsVerifyingToken] = useState(false);
   const turnstileRef = useRef<HTMLDivElement>(null);
+
+  // ฟังก์ชันตรวจสอบ token กับ server
+  const verifyToken = async (token: string) => {
+    setIsVerifyingToken(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/verify-turnstile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('Turnstile verification successful:', data);
+        setIsVerified(true);
+        setIsLoading(false);
+        setError(null);
+      } else {
+        throw new Error(data.message || 'Verification failed');
+      }
+    } catch (error) {
+      console.error('Token verification error:', error);
+      setError('การยืนยันตัวตนล้มเหลว กรุณาลองใหม่');
+      setIsLoading(false);
+      
+      // รีเซ็ต turnstile
+      if (window.turnstile && turnstileRef.current) {
+        window.turnstile.reset();
+      }
+    } finally {
+      setIsVerifyingToken(false);
+    }
+  };
 
   useEffect(() => {
     // โหลด Cloudflare Turnstile script
@@ -64,14 +103,12 @@ const CloudflareTurnstile = () => {
 
         // สร้าง turnstile widget
         const widgetId = window.turnstile.render(turnstileRef.current, {
-          sitekey: '0x4AAAAAAABkMYinukE8nzWb', // Test sitekey สำหรับการพัฒนา
+          sitekey: '0x4AAAAAACf9_YA-uWiPDCnS', // Real sitekey
           theme: 'light',
           language: 'th',
           callback: (token: string) => {
-            console.log('Turnstile verification successful:', token);
-            setIsVerified(true);
-            setIsLoading(false);
-            setError(null);
+            // ส่ง token ไปตรวจสอบกับ server
+            verifyToken(token);
           },
           'error-callback': (error: any) => {
             console.error('Turnstile error:', error);
@@ -183,7 +220,14 @@ const CloudflareTurnstile = () => {
               </div>
             )}
 
-            {!isLoading && !isVerified && (
+            {isVerifyingToken && (
+              <div className="flex items-center justify-center gap-2 text-blue-600">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">กำลังยืนยันตัวตน...</span>
+              </div>
+            )}
+
+            {!isLoading && !isVerified && !isVerifyingToken && (
               <>
                 {error && (
                   <button

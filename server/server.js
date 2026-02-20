@@ -1286,9 +1286,76 @@ app.get('/api/topups', verifyToken, (req, res) => {
   }
 });
 
+// Verify Turnstile token endpoint
+app.post('/api/verify-turnstile', async (req, res) => {
+  try {
+    const { token } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token is required'
+      });
+    }
+
+    // ตรวจสอบ token กับ Cloudflare API
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        secret: '0x4AAAAAACf9_TwDPy63W_1gTfPJ9wi3jiU', // Secret key
+        response: token,
+        remoteip: req.ip || req.connection.remoteAddress
+      })
+    });
+
+    const data = await response.json();
+    
+    if (data.success) {
+      console.log('Turnstile verification successful:', {
+        success: data.success,
+        hostname: data.hostname,
+        challenge_ts: data.challenge_ts
+      });
+      
+      res.json({
+        success: true,
+        message: 'Verification successful',
+        data: {
+          hostname: data.hostname,
+          challenge_ts: data.challenge_ts
+        }
+      });
+    } else {
+      console.log('Turnstile verification failed:', data);
+      res.status(400).json({
+        success: false,
+        message: 'Verification failed',
+        error: data['error-codes'] || ['unknown_error']
+      });
+    }
+  } catch (error) {
+    console.error('Turnstile verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during verification'
+    });
+  }
+});
+
 // Cloudflare status check endpoint
 app.get('/api/cloudflare-status', (req, res) => {
   try {
+    // ตรวจสอบ Cloudflare headers แบบครบถ้วน
+    const cfRay = req.headers['cf-ray'];
+    const cfCountry = req.headers['cf-country'] || req.headers['cf-ipcountry'];
+    const cfConnectingIp = req.headers['cf-connecting-ip'];
+    const cfVisitor = req.headers['cf-visitor'];
+    const cfRequestID = req.headers['cf-request-id'];
+
+    // ตรวจสอบว่าอยู่บน localhost หรือไม่
     const isLocalhost = req.hostname === 'localhost' || 
                       req.hostname === '127.0.0.1' ||
                       req.hostname.includes('192.168.') ||
@@ -1298,31 +1365,48 @@ app.get('/api/cloudflare-status', (req, res) => {
       return res.json({
         success: false,
         status: 'localhost',
-        message: 'Running on localhost',
-        tunnelUrl: null
+        message: 'Running on localhost - Development mode',
+        tunnelUrl: null,
+        headers: {
+          cfRay: null,
+          cfCountry: null,
+          cfConnectingIp: null
+        }
       });
     }
 
     // ตรวจสอบว่ามี Cloudflare headers หรือไม่
-    const cfRay = req.headers['cf-ray'];
-    const cfCountry = req.headers['cf-country'];
-    const cfIPCountry = req.headers['cf-ipcountry'];
-
-    if (cfRay) {
+    if (cfRay && cfRequestID) {
       return res.json({
         success: true,
         status: 'connected',
-        message: 'Connected via Cloudflare Tunnel',
+        message: 'Connected via Cloudflare Tunnel - Protected',
         tunnelUrl: req.protocol + '://' + req.get('host'),
-        cfRay: cfRay,
-        cfCountry: cfCountry || cfIPCountry
+        headers: {
+          cfRay: cfRay,
+          cfCountry: cfCountry,
+          cfConnectingIp: cfConnectingIp,
+          cfVisitor: cfVisitor,
+          cfRequestID: cfRequestID
+        },
+        security: {
+          botFightMode: true,
+          ddosProtection: true,
+          sslEncryption: true
+        }
       });
     } else {
       return res.json({
         success: false,
         status: 'direct',
-        message: 'Direct connection (no Cloudflare)',
-        tunnelUrl: null
+        message: 'Direct connection - Not protected by Cloudflare',
+        tunnelUrl: null,
+        headers: {
+          cfRay: null,
+          cfCountry: null,
+          cfConnectingIp: null
+        },
+        recommendation: 'Please configure Cloudflare Tunnel or Cloudflare Proxy'
       });
     }
   } catch (error) {
