@@ -24,7 +24,9 @@ import {
   ShoppingCart,
   MessageSquare,
   Save,
-  LogOut
+  LogOut,
+  Code,
+  Webhook
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import apiClient from "@/services/apiClient";
@@ -32,6 +34,7 @@ import { isAuthenticated } from "@/services/authService";
 import { useNavigate } from "react-router-dom";
 import ProductManager from "@/components/admin/ProductManager";
 import OrderManager from "@/components/admin/OrderManager";
+import ScriptEditor from "@/components/admin/ScriptEditor";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
 // Admin Key constant
@@ -571,7 +574,7 @@ const Admin = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               แดชบอร์ด
@@ -583,6 +586,10 @@ const Admin = () => {
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="w-4 h-4" />
               จัดการสินค้า
+            </TabsTrigger>
+            <TabsTrigger value="scripts" className="flex items-center gap-2">
+              <Code className="w-4 h-4" />
+              จัดการ Scripts
             </TabsTrigger>
             <TabsTrigger value="announcements" className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
@@ -765,6 +772,25 @@ const Admin = () => {
               onProductAdd={handleProductAdd}
               onProductDelete={handleProductDelete}
             />
+          </TabsContent>
+
+          {/* Scripts Management */}
+          <TabsContent value="scripts" className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold">🎮 Roblox Scripts Manager</h3>
+                <p className="text-sm text-muted-foreground">จัดการ scripts สำหรับ Roblox executor</p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/webhook-logs')}
+                className="flex items-center gap-2"
+              >
+                <Webhook className="w-4 h-4" />
+                Webhook Logs
+              </Button>
+            </div>
+            <ScriptEditor />
           </TabsContent>
 
           {/* Announcements Management */}

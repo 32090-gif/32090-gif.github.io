@@ -28,7 +28,6 @@ const Navbar = () => {
     { href: "/products", label: "สินค้าทั้งหมด" },
     { href: "/categories", label: "หมวดหมู่" },
     { href: "/topup", label: "เติมเงิน" },
-    { href: "/scripts", label: "🎮 Scripts" },
     { href: "/get-key", label: "Get Key" },
   ];
 

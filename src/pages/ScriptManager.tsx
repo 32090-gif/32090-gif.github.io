@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Code, Upload, Download, Eye, Trash2, Plus, Edit, Copy, Check } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { Code, Upload, Download, Eye, Trash2, Plus, Edit, Copy, Check, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { isAuthenticated, getCurrentUser } from '@/services/authService';
 
 interface Script {
   id: string;
@@ -20,10 +21,42 @@ const ScriptManager = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchScripts();
+    checkAdminAuth();
   }, []);
+
+  const checkAdminAuth = () => {
+    try {
+      // Check admin key first (like Admin.tsx)
+      const savedAdminKey = sessionStorage.getItem('adminKeyVerified');
+      const ADMIN_KEY_CONSTANT = "kunlun2026";
+      
+      if (savedAdminKey !== ADMIN_KEY_CONSTANT) {
+        alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+        navigate('/admin-login');
+        return;
+      }
+
+      // Check authentication
+      if (!isAuthenticated()) {
+        alert('กรุณาเข้าสู่ระบบก่อน');
+        navigate('/login');
+        return;
+      }
+
+      setIsAdmin(true);
+      fetchScripts();
+    } catch (error) {
+      alert('เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์');
+      navigate('/login');
+    } finally {
+      setAuthChecking(false);
+    }
+  };
 
   const fetchScripts = async () => {
     try {
@@ -33,10 +66,10 @@ const ScriptManager = () => {
       if (data.success) {
         setScripts(data.scripts);
       } else {
-        toast.error('ไม่สามารถโหลด scripts ได้');
+        alert('ไม่สามารถโหลด scripts ได้');
       }
     } catch (error) {
-      toast.error('เกิดข้อผิดพลาดในการโหลด scripts');
+      alert('เกิดข้อผิดพลาดในการโหลด scripts');
     } finally {
       setLoading(false);
     }
@@ -46,16 +79,45 @@ const ScriptManager = () => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedId(id);
-      toast.success('คัดลอกสำเร็จ!');
+      alert('คัดลอกสำเร็จ!');
       setTimeout(() => setCopiedId(null), 2000);
     } catch (error) {
-      toast.error('ไม่สามารถคัดลอกได้');
+      alert('ไม่สามารถคัดลอกได้');
     }
   };
 
   const getLoadstringCommand = (scriptId: string) => {
     return `loadstring(game:HttpGet("https://getkunlun.me/api/scripts/${scriptId}/raw"))()`;
   };
+
+  if (authChecking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">กำลังตรวจสอบสิทธิ์...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">ไม่มีสิทธิ์เข้าถึง</h2>
+          <p className="text-gray-600 mb-4">คุณไม่มีสิทธิ์เข้าถึงหน้าจัดการ Scripts</p>
+          <button
+            onClick={() => navigate('/admin-login')}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            เข้าสู่ระบบ Admin
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

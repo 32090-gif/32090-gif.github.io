@@ -1345,8 +1345,8 @@ app.post('/api/verify-turnstile', async (req, res) => {
   }
 });
 
-// Roblox Script API - Raw script endpoint
-app.get('/api/scripts/:scriptId/raw', (req, res) => {
+// Roblox Script API - Raw script endpoint (protected)
+app.get('/api/scripts/:scriptId/raw', verifyToken, (req, res) => {
   try {
     const { scriptId } = req.params;
     
@@ -1368,7 +1368,181 @@ app.get('/api/scripts/:scriptId/raw', (req, res) => {
       });
     }
 
+    // อ่านเนื้อหา script เพื่อตรวจสอบความเป็นเจ้าของ
     const scriptContent = fs.readFileSync(scriptPath, 'utf8');
+    
+    // ตรวจสอบว่า script มีข้อมูลเจ้าของหรือไม่
+    const authorMatch = scriptContent.match(/--\s*@author\s+(.+)/i);
+    const scriptAuthor = authorMatch ? authorMatch[1].trim().toLowerCase() : null;
+    
+    // ตรวจสอบว่าผู้ใช้เป็นเจ้าของ script หรือ admin
+    const currentUser = req.user.username.toLowerCase();
+    const isAdmin = req.user.username.toLowerCase() === 'admin';
+    
+    if (!isAdmin && scriptAuthor && scriptAuthor !== currentUser) {
+      return res.status(403).send(`
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - Access Denied | Kunlun</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Prompt', 'Noto Sans Thai', sans-serif;
+            background: linear-gradient(135deg, #0d0d0f 0%, #1a1a1f 100%);
+            color: #dcdce6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 600px;
+            background: rgba(18, 18, 21, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            border: 1px solid rgba(35, 35, 42, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .error-code {
+            font-size: 120px;
+            font-weight: 700;
+            color: #ff3b30;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255, 59, 48, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .error-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #dcdce6;
+        }
+        
+        .error-message {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #646473;
+            margin-bottom: 40px;
+        }
+        
+        .info-box {
+            background: rgba(22, 22, 26, 0.6);
+            border: 1px solid rgba(45, 45, 55, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .info-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #30ff6a;
+            margin-bottom: 10px;
+        }
+        
+        .info-text {
+            font-size: 14px;
+            color: #646473;
+            line-height: 1.5;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: #30ff6a;
+            color: #0a0a0c;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+        
+        .btn:hover {
+            background: #1ed250;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(48, 255, 106, 0.2);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #30ff6a;
+            color: #30ff6a;
+        }
+        
+        .btn-secondary:hover {
+            background: #30ff6a;
+            color: #0a0a0c;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #646473;
+        }
+        
+        .lock-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lock-icon">🔒</div>
+        <div class="error-code">403</div>
+        <h1 class="error-title">Access Denied</h1>
+        <p class="error-message">
+            คุณไม่มีสิทธิ์เข้าถึงสคริปต์นี้<br>
+            สคริปต์นี้เป็นส่วนตัวและต้องการการอนุญาตพิเศษ
+        </p>
+        
+        <div class="info-box">
+            <div class="info-title">📋 ข้อมูลการเข้าถึง</div>
+            <div class="info-text">
+                • ต้องเป็นเจ้าของสคริปต์เท่านั้นที่สามารถเข้าถึงได้<br>
+                • ตรวจสอบว่าคุณ login ด้วยบัญชีที่ถูกต้อง<br>
+                • หากคุณเป็นเจ้าของสคริปต์ กรุณาตรวจสอบ @author ในไฟล์<br>
+                • สำหรับข้อมูลเพิ่มเติม ติดต่อผู้ดูแลระบบ
+            </div>
+        </div>
+        
+        <div>
+            <a href="https://getkunlun.me" class="btn">🏠 กลับหน้าแรก</a>
+            <a href="https://discord.com/channels/1425425387256680519/1432548436535672912" class="btn btn-secondary">💬 ติดต่อ Discord</a>
+        </div>
+        
+        <div class="footer">
+            <p>© 2026 Kunlun - Protected Script Access</p>
+        </div>
+    </div>
+</body>
+</html>
+      `);
+    }
     
     // ส่งเป็น raw text สำหรับ loadstring
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -1505,6 +1679,54 @@ app.post('/api/scripts/upload', verifyToken, (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error uploading script'
+    });
+  }
+});
+
+// Roblox Script API - Delete script (protected)
+app.delete('/api/scripts/:scriptId', verifyToken, (req, res) => {
+  try {
+    const { scriptId } = req.params;
+    
+    if (!scriptId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Script ID is required'
+      });
+    }
+    
+    // ตรวจสอบ scriptId
+    if (!/^[a-zA-Z0-9_-]+$/.test(scriptId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid script ID format'
+      });
+    }
+    
+    // ตรวจสอบว่ามี script หรือไม่
+    const scriptPath = path.join(__dirname, 'scripts', `${scriptId}.lua`);
+    
+    if (!fs.existsSync(scriptPath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Script not found'
+      });
+    }
+    
+    // ลบไฟล์
+    fs.unlinkSync(scriptPath);
+    
+    res.json({
+      success: true,
+      message: 'Script deleted successfully',
+      scriptId: scriptId
+    });
+    
+  } catch (error) {
+    console.error('Error deleting script:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting script'
     });
   }
 });
