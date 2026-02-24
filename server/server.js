@@ -1345,6 +1345,225 @@ app.post('/api/verify-turnstile', async (req, res) => {
   }
 });
 
+// Roblox Script API - Hidden loadstring endpoint (for Roblox execution only)
+app.get('/api/scripts/:scriptId/loadstring', verifyToken, (req, res) => {
+  try {
+    const { scriptId } = req.params;
+    
+    // ตรวจสอบว่า scriptId ถูกต้องหรือไม่
+    if (!scriptId || !/^[a-zA-Z0-9_-]+$/.test(scriptId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid script ID'
+      });
+    }
+
+    // อ่านไฟล์ script
+    const scriptPath = path.join(__dirname, 'scripts', `${scriptId}.lua`);
+    
+    if (!fs.existsSync(scriptPath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Script not found'
+      });
+    }
+
+    // อ่านเนื้อหา script เพื่อตรวจสอบความเป็นเจ้าของ
+    const scriptContent = fs.readFileSync(scriptPath, 'utf8');
+    
+    // ตรวจสอบว่า script มีข้อมูลเจ้าของหรือไม่
+    const authorMatch = scriptContent.match(/--\s*@author\s+(.+)/i);
+    const scriptAuthor = authorMatch ? authorMatch[1].trim().toLowerCase() : null;
+    
+    // ตรวจสอบว่าผู้ใช้เป็นเจ้าของ script หรือ admin
+    const currentUser = req.user.username.toLowerCase();
+    const isAdmin = req.user.username.toLowerCase() === 'admin';
+    
+    if (!isAdmin && scriptAuthor && scriptAuthor !== currentUser) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - You do not own this script'
+      });
+    }
+    
+    // ตรวจสอบ User-Agent เพื่อให้แน่ใจว่าเป็น Roblox
+    const userAgent = req.headers['user-agent'] || '';
+    const isRoblox = userAgent.includes('Roblox') || 
+                   userAgent.includes('Windows') || 
+                   req.headers['x-roblox-game-id'] ||
+                   req.query.from === 'roblox';
+    
+    if (!isRoblox) {
+      return res.status(403).send(`
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - Roblox Only | Kunlun</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Prompt', 'Noto Sans Thai', sans-serif;
+            background: linear-gradient(135deg, #0d0d0f 0%, #1a1a1f 100%);
+            color: #dcdce6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 600px;
+            background: rgba(18, 18, 21, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            border: 1px solid rgba(35, 35, 42, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .error-code {
+            font-size: 120px;
+            font-weight: 700;
+            color: #ff3b30;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255, 59, 48, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .error-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #dcdce6;
+        }
+        
+        .error-message {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #646473;
+            margin-bottom: 40px;
+        }
+        
+        .info-box {
+            background: rgba(22, 22, 26, 0.6);
+            border: 1px solid rgba(45, 45, 55, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .info-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #30ff6a;
+            margin-bottom: 10px;
+        }
+        
+        .info-text {
+            font-size: 14px;
+            color: #646473;
+            line-height: 1.5;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: #30ff6a;
+            color: #0a0a0c;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+        
+        .btn:hover {
+            background: #1ed250;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(48, 255, 106, 0.2);
+        }
+        
+        .footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #646473;
+        }
+        
+        .roblox-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="roblox-icon">🎮</div>
+        <div class="error-code">403</div>
+        <h1 class="error-title">Roblox Only</h1>
+        <p class="error-message">
+            Endpoint นี้สำหรับ Roblox เท่านั้น<br>
+            สคริปต์สามารถ loadstring ได้เฉพาะใน Roblox environment
+        </p>
+        
+        <div class="info-box">
+            <div class="info-title">🎮 ข้อมูลการเข้าถึง</div>
+            <div class="info-text">
+                • Endpoint นี้สำหรับ loadstring ใน Roblox เท่านั้น<br>
+                • ไม่สามารถเข้าถึงผ่าน browser ธรรมดา<br>
+                • ต้องมีสิทธิ์และเป็นเจ้าของสคริปต์<br>
+                • สำหรับการดูสคริปต์ ใช้ /raw endpoint
+            </div>
+        </div>
+        
+        <div>
+            <a href="https://getkunlun.me" class="btn">🏠 กลับหน้าแรก</a>
+            <a href="https://discord.com/channels/1425425387256680519/1432548436535672912" class="btn btn-secondary">💬 ติดต่อ Discord</a>
+        </div>
+        
+        <div class="footer">
+            <p>© 2026 Kunlun - Roblox Script Protection</p>
+        </div>
+    </div>
+</body>
+</html>
+      `);
+    }
+    
+    // ส่งเป็น raw text สำหรับ loadstring (Roblox เท่านั้น)
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('X-Roblox-Script', 'true');
+    res.send(scriptContent);
+    
+  } catch (error) {
+    console.error('Error serving script for loadstring:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error loading script'
+    });
+  }
+});
+
 // Roblox Script API - Raw script endpoint (protected)
 app.get('/api/scripts/:scriptId/raw', verifyToken, (req, res) => {
   try {
