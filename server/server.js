@@ -1345,6 +1345,170 @@ app.post('/api/verify-turnstile', async (req, res) => {
   }
 });
 
+// Roblox Script API - Raw script endpoint
+app.get('/api/scripts/:scriptId/raw', (req, res) => {
+  try {
+    const { scriptId } = req.params;
+    
+    // ตรวจสอบว่า scriptId ถูกต้องหรือไม่
+    if (!scriptId || !/^[a-zA-Z0-9_-]+$/.test(scriptId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid script ID'
+      });
+    }
+
+    // อ่านไฟล์ script
+    const scriptPath = path.join(__dirname, 'scripts', `${scriptId}.lua`);
+    
+    if (!fs.existsSync(scriptPath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Script not found'
+      });
+    }
+
+    const scriptContent = fs.readFileSync(scriptPath, 'utf8');
+    
+    // ส่งเป็น raw text สำหรับ loadstring
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.send(scriptContent);
+    
+  } catch (error) {
+    console.error('Error serving script:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error loading script'
+    });
+  }
+});
+
+// Roblox Script API - List available scripts
+app.get('/api/scripts', (req, res) => {
+  try {
+    const scriptsDir = path.join(__dirname, 'scripts');
+    
+    if (!fs.existsSync(scriptsDir)) {
+      fs.mkdirSync(scriptsDir, { recursive: true });
+    }
+    
+    const scriptFiles = fs.readdirSync(scriptsDir)
+      .filter(file => file.endsWith('.lua'))
+      .map(file => {
+        const scriptPath = path.join(scriptsDir, file);
+        const stats = fs.statSync(scriptPath);
+        const scriptId = file.replace('.lua', '');
+        
+        // อ่าน metadata จากไฟล์
+        const content = fs.readFileSync(scriptPath, 'utf8');
+        const metadata = extractScriptMetadata(content);
+        
+        return {
+          id: scriptId,
+          name: metadata.name || scriptId,
+          description: metadata.description || 'No description',
+          version: metadata.version || '1.0.0',
+          author: metadata.author || 'Unknown',
+          createdAt: stats.birthtime,
+          updatedAt: stats.mtime,
+          size: stats.size
+        };
+      });
+    
+    res.json({
+      success: true,
+      scripts: scriptFiles,
+      total: scriptFiles.length
+    });
+    
+  } catch (error) {
+    console.error('Error listing scripts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error listing scripts'
+    });
+  }
+});
+
+// Helper function to extract metadata from script
+function extractScriptMetadata(content) {
+  const metadata = {};
+  
+  // หา metadata ใน comment
+  const nameMatch = content.match(/--\s*@name\s+(.+)/i);
+  if (nameMatch) metadata.name = nameMatch[1].trim();
+  
+  const descMatch = content.match(/--\s*@description\s+(.+)/i);
+  if (descMatch) metadata.description = descMatch[1].trim();
+  
+  const versionMatch = content.match(/--\s*@version\s+(.+)/i);
+  if (versionMatch) metadata.version = versionMatch[1].trim();
+  
+  const authorMatch = content.match(/--\s*@author\s+(.+)/i);
+  if (authorMatch) metadata.author = authorMatch[1].trim();
+  
+  return metadata;
+}
+
+// Roblox Script API - Upload script (protected)
+app.post('/api/scripts/upload', verifyToken, (req, res) => {
+  try {
+    const { scriptId, content, name, description, version, author } = req.body;
+    
+    if (!scriptId || !content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Script ID and content are required'
+      });
+    }
+    
+    // ตรวจสอบ scriptId
+    if (!/^[a-zA-Z0-9_-]+$/.test(scriptId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid script ID format'
+      });
+    }
+    
+    // สร้าง scripts directory ถ้ายังไม่มี
+    const scriptsDir = path.join(__dirname, 'scripts');
+    if (!fs.existsSync(scriptsDir)) {
+      fs.mkdirSync(scriptsDir, { recursive: true });
+    }
+    
+    // เพิ่ม metadata ที่ต้นไฟล์
+    let finalContent = content;
+    if (!content.includes('-- @name')) {
+      finalContent = `-- @name ${name || scriptId}\n` +
+                    `-- @description ${description || 'No description'}\n` +
+                    `-- @version ${version || '1.0.0'}\n` +
+                    `-- @author ${author || 'Unknown'}\n\n` +
+                    content;
+    }
+    
+    // เขียนไฟล์
+    const scriptPath = path.join(scriptsDir, `${scriptId}.lua`);
+    fs.writeFileSync(scriptPath, finalContent, 'utf8');
+    
+    res.json({
+      success: true,
+      message: 'Script uploaded successfully',
+      scriptId: scriptId,
+      url: `https://getkunlun.me/api/scripts/${scriptId}/raw`
+    });
+    
+  } catch (error) {
+    console.error('Error uploading script:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error uploading script'
+    });
+  }
+});
+
 // Cloudflare status check endpoint
 app.get('/api/cloudflare-status', (req, res) => {
   try {

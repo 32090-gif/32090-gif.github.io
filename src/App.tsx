@@ -20,6 +20,7 @@ import GetKey from "./pages/GetKey";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import Profile from "./pages/Profile";
+import ScriptManager from "./pages/ScriptManager";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/order-history" element={<OrderHistory />} />
           <Route path="/get-key" element={<GetKey />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/scripts" element={<ScriptManager />} />
 <Route path="/admin-login" element={<AdminLogin />} />
 <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
