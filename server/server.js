@@ -1544,12 +1544,235 @@ app.get('/api/scripts/:scriptId/raw', verifyToken, (req, res) => {
       `);
     }
     
-    // ส่งเป็น raw text สำหรับ loadstring
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    // ส่งเป็น HTML page ที่ซ่อน script content
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.send(scriptContent);
+    
+    // สร้าง HTML page ที่ซ่อน script content
+    const htmlPage = `
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Content - ${scriptId} | Kunlun</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Prompt', 'Noto Sans Thai', sans-serif;
+            background: linear-gradient(135deg, #0d0d0f 0%, #1a1a1f 100%);
+            color: #dcdce6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 800px;
+            background: rgba(18, 18, 21, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            border: 1px solid rgba(35, 35, 42, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .script-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        
+        .title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #dcdce6;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #646473;
+            margin-bottom: 30px;
+        }
+        
+        .info-box {
+            background: rgba(22, 22, 26, 0.6);
+            border: 1px solid rgba(45, 45, 55, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .info-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #30ff6a;
+            margin-bottom: 10px;
+        }
+        
+        .info-text {
+            font-size: 14px;
+            color: #646473;
+            line-height: 1.5;
+        }
+        
+        .script-info {
+            background: rgba(48, 255, 106, 0.1);
+            border: 1px solid rgba(48, 255, 106, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: #30ff6a;
+            color: #0a0a0c;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn:hover {
+            background: #1ed250;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(48, 255, 106, 0.2);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #30ff6a;
+            color: #30ff6a;
+        }
+        
+        .btn-secondary:hover {
+            background: #30ff6a;
+            color: #0a0a0c;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #646473;
+        }
+        
+        .hidden-content {
+            display: none;
+        }
+        
+        .copy-btn {
+            background: rgba(48, 255, 106, 0.2);
+            border: 1px solid rgba(48, 255, 106, 0.5);
+            color: #30ff6a;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(48, 255, 106, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="script-icon">📜</div>
+        <h1 class="title">Script Content Protected</h1>
+        <p class="subtitle">
+            เนื้อหาสคริปต์ถูกป้องกันและซ่อนอยู่<br>
+            สคริปต์นี้สามารถใช้งานได้เฉพาะใน Roblox เท่านั้น
+        </p>
+        
+        <div class="info-box">
+            <div class="info-title">📋 ข้อมูลสคริปต์</div>
+            <div class="info-text">
+                • Script ID: <strong>${scriptId}</strong><br>
+                • สถานะ: <span style="color: #30ff6a;">✅ พร้อมใช้งาน</span><br>
+                • การเข้าถึง: <span style="color: #30ff6a;">🔒 ป้องกันแล้ว</span><br>
+                • ประเภท: <span style="color: #30ff6a;">🔧 Private Script</span>
+            </div>
+        </div>
+        
+        <div class="script-info">
+            <strong>📝 Script Information:</strong><br>
+            Script content is hidden for security reasons.<br>
+            This script can only be executed within Roblox environment.<br>
+            Content length: ${scriptContent.length} characters
+        </div>
+        
+        <div class="hidden-content" id="scriptContent">
+            ${scriptContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+        </div>
+        
+        <div>
+            <button class="btn" onclick="copyScript()">📋 คัดลอกสคริปต์</button>
+            <button class="btn btn-secondary" onclick="showScript()">👁️ แสดงสคริปต์</button>
+            <a href="https://getkunlun.me" class="btn">🏠 กลับหน้าแรก</a>
+        </div>
+        
+        <div class="footer">
+            <p>© 2026 Kunlun - Protected Script Content | Script ID: ${scriptId}</p>
+        </div>
+    </div>
+    
+    <script>
+        function copyScript() {
+            const content = document.getElementById('scriptContent').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                alert('✅ คัดลอกสคริปต์แล้ว! สามารถนำไปใช้ใน Roblox ได้');
+            }).catch(() => {
+                alert('❌ ไม่สามารถคัดลอกได้ กรุณาลองใหม่');
+            });
+        }
+        
+        function showScript() {
+            const hiddenContent = document.getElementById('scriptContent');
+            if (hiddenContent.style.display === 'none' || hiddenContent.style.display === '') {
+                hiddenContent.style.display = 'block';
+                hiddenContent.style.background = 'rgba(22, 22, 26, 0.8)';
+                hiddenContent.style.border = '1px solid rgba(45, 45, 55, 0.5)';
+                hiddenContent.style.borderRadius = '8px';
+                hiddenContent.style.padding = '20px';
+                hiddenContent.style.margin = '20px 0';
+                hiddenContent.style.whiteSpace = 'pre-wrap';
+                hiddenContent.style.fontFamily = 'Courier New, monospace';
+                hiddenContent.style.fontSize = '12px';
+                hiddenContent.style.maxHeight = '400px';
+                hiddenContent.style.overflow = 'auto';
+            } else {
+                hiddenContent.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
+    `;
+    
+    res.send(htmlPage);
     
   } catch (error) {
     console.error('Error serving script:', error);
