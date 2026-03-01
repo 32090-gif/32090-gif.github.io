@@ -39,11 +39,7 @@ const rateLimiter = (req, res, next) => {
   
   // Check if IP is blocked
   if (API_SECURITY.blockedIPs.has(clientIP)) {
-    return res.status(403).json({
-      success: false,
-      message: '5555555555555555555555555555555 IP ถูกบล็อกแล้ว หวัง API ฟรีหรอ?',
-      blocked: true
-    });
+    return res.redirect(302, 'https://www.cloudflare.com/learning/ddos/glossary/error-1015/');
   }
   
   // Check rate limit
@@ -69,12 +65,7 @@ const rateLimiter = (req, res, next) => {
     // Add to suspicious IPs
     API_SECURITY.suspiciousIPs.add(clientIP);
     
-    return res.status(429).json({
-      success: false,
-      message: '5555555555555555555555555555555 ส่ง request เยอะไปหรอ? หวัง API ฟรีหรอ?',
-      retryAfter: Math.ceil((requestData.resetTime - now) / 1000),
-      rateLimit: true
-    });
+    return res.redirect(302, 'https://www.cloudflare.com/learning/ddos/glossary/error-1015/');
   }
   
   requestData.count++;
