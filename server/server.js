@@ -84,9 +84,25 @@ const rateLimiter = (req, res, next) => {
 // API Key validation middleware
 const validateAPIKey = (req, res, next) => {
   const apiKey = req.headers['x-api-key'];
+  const origin = req.headers.origin;
   const userAgent = req.headers['user-agent'] || '';
   
-  // ต้องมี API key เสมอ ไม่ว่าจะเป็น browser หรือ bot
+  // อนุญาต origins ที่เป็น frontend ของเราโดยไม่ต้องมี API key
+  const allowedOrigins = [
+    'http://localhost:8082', 
+    'http://localhost:8081', 
+    'http://localhost:8080', 
+    'http://localhost:3000',
+    'https://getkunlun.me',
+    'https://www.getkunlun.me'
+  ];
+  
+  // ถ้ามาจาก origin ที่อนุญาต ให้ผ่านได้เลย
+  if (allowedOrigins.includes(origin)) {
+    return next();
+  }
+  
+  // ถ้าไม่ใช่ origin ที่อนุญาต ต้องมี API key
   if (!apiKey) {
     API_SECURITY.suspiciousIPs.add(req.ip);
     return res.status(401).json({
