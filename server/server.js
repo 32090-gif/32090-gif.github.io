@@ -15,61 +15,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'kunlun-secret-key-2026';
 
 // ระบบป้องกัน API
 const API_SECURITY = {
-  // Rate limiting
-  rateLimit: new Map(),
-  maxRequests: 100, // 100 requests per 15 minutes
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  
-  // IP blocking
-  blockedIPs: new Set(),
-  suspiciousIPs: new Set(),
-  
   // API Key protection
   apiKeys: new Set(['kunlun-api-key-2026', 'slumzick-secure-key']),
   
   // Request tracking
   requestCounts: new Map(),
   lastRequestTime: new Map()
-};
-
-// Rate limiting middleware
-const rateLimiter = (req, res, next) => {
-  const clientIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
-  const now = Date.now();
-  
-  // Check if IP is blocked
-  if (API_SECURITY.blockedIPs.has(clientIP)) {
-    return res.redirect(302, 'https://www.cloudflare.com/learning/ddos/glossary/error-1015/');
-  }
-  
-  // Check rate limit
-  const requestData = API_SECURITY.rateLimit.get(clientIP);
-  if (!requestData) {
-    API_SECURITY.rateLimit.set(clientIP, {
-      count: 1,
-      resetTime: now + API_SECURITY.windowMs
-    });
-    return next();
-  }
-  
-  if (now > requestData.resetTime) {
-    // Reset window
-    API_SECURITY.rateLimit.set(clientIP, {
-      count: 1,
-      resetTime: now + API_SECURITY.windowMs
-    });
-    return next();
-  }
-  
-  if (requestData.count >= API_SECURITY.maxRequests) {
-    // Add to suspicious IPs
-    API_SECURITY.suspiciousIPs.add(clientIP);
-    
-    return res.redirect(302, 'https://www.cloudflare.com/learning/ddos/glossary/error-1015/');
-  }
-  
-  requestData.count++;
-  next();
 };
 
 // API Key validation middleware
@@ -101,7 +52,6 @@ const validateAPIKey = (req, res, next) => {
   
   // ถ้าไม่ใช่ frontend ของเรา ต้องมี API key
   if (!apiKey) {
-    API_SECURITY.suspiciousIPs.add(req.ip);
     return res.status(401).json({
       success: false,
       message: '5555555555555555555555555555555 หวังใช้ API ฟรีหรอ? จ่ายตังค์ก่อนนะ!',
@@ -137,12 +87,6 @@ const requestMonitor = (req, res, next) => {
     console.log(`🚨 Suspicious activity detected from ${clientIP}: ${requestCount} requests`);
     console.log(`User-Agent: ${userAgent}`);
     console.log(`Endpoint: ${req.method} ${req.url}`);
-  }
-  
-  // Auto-block extremely suspicious IPs
-  if (requestCount > 200) {
-    API_SECURITY.blockedIPs.add(clientIP);
-    console.log(`🔒 Auto-blocking IP: ${clientIP} (${requestCount} requests)`);
   }
   
   next();
@@ -197,7 +141,6 @@ app.options('*', cors());
 
 // Apply security middleware
 app.use(requestMonitor);
-app.use(rateLimiter);
 // ไม่ใส่ validateAPIKey ตรงนี้ เพื่อให้ frontend ทำงานได้
 
 // Serve static files from dist directory
@@ -579,7 +522,7 @@ if (!fs.existsSync(DATA_FILE)) {
 // Routes
 
 // Health check
-app.get('/api/health', rateLimiter, (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'API is running',
@@ -588,7 +531,7 @@ app.get('/api/health', rateLimiter, (req, res) => {
 });
 
 // Get all users (for admin purposes - in production, this should be protected)
-app.get('/api/users', rateLimiter, validateAPIKey, (req, res) => {
+app.get('/api/users', validateAPIKey, (req, res) => {
   try {
     const data = readUsersFromFile();
     // Don't return passwords
@@ -993,7 +936,7 @@ app.delete('/api/user/avatar', verifyToken, (req, res) => {
 // ===== END PROFILE SYSTEM =====
 
 // Get vouchers
-app.get('/api/vouchers', rateLimiter, validateAPIKey, (req, res) => {
+app.get('/api/vouchers', validateAPIKey, (req, res) => {
   try {
     const data = readVouchersFromFile();
     res.json({ success: true, vouchers: data.vouchers });
@@ -1056,7 +999,7 @@ app.post('/api/vouchers/use', verifyToken, (req, res) => {
 });
 
 // Topup endpoints
-app.get('/api/topups/stats', rateLimiter, validateAPIKey, (req, res) => {
+app.get('/api/topups/stats', validateAPIKey, (req, res) => {
   try {
     const topupData = readTopupsFromFile();
     const userData = readUsersFromFile();
@@ -2292,7 +2235,7 @@ app.use((error, req, res, next) => {
 });
 
 // Stock/Products endpoints
-app.get('/api/products', rateLimiter, validateAPIKey, (req, res) => {
+app.get('/api/products', validateAPIKey, (req, res) => {
   try {
     const items = getAllStockItems();
     const activeItems = items.filter(item => item.status === 'active' && item.stock > 0);
@@ -2308,7 +2251,7 @@ app.get('/api/products', rateLimiter, validateAPIKey, (req, res) => {
   }
 });
 
-app.get('/api/products/:id', rateLimiter, validateAPIKey, (req, res) => {
+app.get('/api/products/:id', validateAPIKey, (req, res) => {
   try {
     const { id } = req.params;
     const item = getStockItem(id);
@@ -2685,7 +2628,7 @@ const writeAnnouncementsToFile = (announcements) => {
 };
 
 // GET /api/announcements - Get all announcements
-app.get('/api/announcements', rateLimiter, validateAPIKey, (req, res) => {
+app.get('/api/announcements', validateAPIKey, (req, res) => {
   try {
     const announcements = readAnnouncementsFromFile();
     res.json({
