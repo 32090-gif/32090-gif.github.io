@@ -85,6 +85,7 @@ const rateLimiter = (req, res, next) => {
 const validateAPIKey = (req, res, next) => {
   const apiKey = req.headers['x-api-key'];
   const origin = req.headers.origin;
+  const referer = req.headers.referer;
   const userAgent = req.headers['user-agent'] || '';
   
   // อนุญาต origins ที่เป็น frontend ของเราโดยไม่ต้องมี API key
@@ -97,12 +98,17 @@ const validateAPIKey = (req, res, next) => {
     'https://www.getkunlun.me'
   ];
   
-  // ถ้ามาจาก origin ที่อนุญาต ให้ผ่านได้เลย
-  if (allowedOrigins.includes(origin)) {
+  // ตรวจสอบว่ามาจาก frontend ของเราหรือไม่
+  const isFromFrontend = allowedOrigins.includes(origin) || 
+                       (referer && allowedOrigins.some(origin => referer.includes(origin))) ||
+                       (origin === null && referer && allowedOrigins.some(origin => referer.includes(origin)));
+  
+  // ถ้ามาจาก frontend ของเรา ให้ผ่านได้เลย
+  if (isFromFrontend) {
     return next();
   }
   
-  // ถ้าไม่ใช่ origin ที่อนุญาต ต้องมี API key
+  // ถ้าไม่ใช่ frontend ของเรา ต้องมี API key
   if (!apiKey) {
     API_SECURITY.suspiciousIPs.add(req.ip);
     return res.status(401).json({
