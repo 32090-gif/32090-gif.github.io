@@ -22,6 +22,7 @@ import AdminLogin from "./pages/AdminLogin";
 import Profile from "./pages/Profile";
 import ScriptManager from "./pages/ScriptManager";
 import WebhookLogs from "./pages/WebhookLogs";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,8 +49,10 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/scripts" element={<ScriptManager />} />
           <Route path="/webhook-logs" element={<WebhookLogs />} />
-<Route path="/admin-login" element={<AdminLogin />} />
-<Route path="/admin" element={<Admin />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/:game" element={<Dashboard />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

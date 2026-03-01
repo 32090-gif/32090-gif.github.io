@@ -10,7 +10,9 @@
       "pin": "1234",
       "points": 1,
       "createdAt": "2026-02-08T13:18:46.333Z",
-      "updatedAt": "2026-02-09T16:09:46.718Z"
+      "updatedAt": "2026-02-09T16:09:46.718Z",
+      "universalKey": "KD_18d6159e-c977-4644-b0c0-2fd6bf8ddb80_UNIVERSAL_1772186538620_08685839",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.621Z"
     },
     {
       "id": "1c6d0c1d-6e85-457c-9fd0-de871b7818f9",
@@ -20,10 +22,12 @@
       "firstName": "TBSkyen",
       "lastName": "User",
       "pin": "341234",
-      "points": 99676,
+      "points": 99596,
       "createdAt": "2026-02-08T13:23:53.285Z",
       "updatedAt": "2026-02-19T13:54:32.932Z",
-      "avatar": "/uploads/avatars/avatar-1c6d0c1d-6e85-457c-9fd0-de871b7818f9.jpg"
+      "avatar": "/uploads/avatars/avatar-1c6d0c1d-6e85-457c-9fd0-de871b7818f9.jpg",
+      "universalKey": "KD_1c6d0c1d-6e85-457c-9fd0-de871b7818f9_UNIVERSAL_1772186538625_b36fc0b0",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.625Z"
     },
     {
       "id": "4c8e1235-d15b-4839-8ee0-3c3916f3298c",
@@ -34,7 +38,9 @@
       "lastName": "User",
       "pin": "1234",
       "points": 10000,
-      "createdAt": "2026-02-08T17:29:16.558Z"
+      "createdAt": "2026-02-08T17:29:16.558Z",
+      "universalKey": "KD_4c8e1235-d15b-4839-8ee0-3c3916f3298c_UNIVERSAL_1772186538626_229b7788",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.626Z"
     },
     {
       "id": "9cb441a0-8167-4bcd-928d-11e8095987c8",
@@ -46,7 +52,9 @@
       "pin": "341234",
       "createdAt": "2026-02-08T17:59:26.729Z",
       "avatar": "/uploads/avatars/avatar-9cb441a0-8167-4bcd-928d-11e8095987c8.jpg",
-      "updatedAt": "2026-02-19T13:22:20.752Z"
+      "updatedAt": "2026-02-19T13:22:20.752Z",
+      "universalKey": "KD_9cb441a0-8167-4bcd-928d-11e8095987c8_UNIVERSAL_1772186538626_2dc37e00",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.626Z"
     },
     {
       "id": "5a1acf88-dcf1-412f-b613-c97f30163d1b",
@@ -56,7 +64,9 @@
       "firstName": "Kuyraisus",
       "lastName": "User",
       "pin": "341234",
-      "createdAt": "2026-02-10T16:37:52.870Z"
+      "createdAt": "2026-02-10T16:37:52.870Z",
+      "universalKey": "KD_5a1acf88-dcf1-412f-b613-c97f30163d1b_UNIVERSAL_1772186538626_82b763f5",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.626Z"
     },
     {
       "id": "5711abd8-7ffa-47a8-9559-2b6596e147bd",
@@ -66,7 +76,9 @@
       "firstName": "Kuydadadada",
       "lastName": "User",
       "pin": "341234",
-      "createdAt": "2026-02-14T11:57:17.113Z"
+      "createdAt": "2026-02-14T11:57:17.113Z",
+      "universalKey": "KD_5711abd8-7ffa-47a8-9559-2b6596e147bd_UNIVERSAL_1772186538626_a85ae5cc",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.626Z"
     },
     {
       "id": "fe77d725-8134-4bfc-bb1e-322e2410fa8c",
@@ -76,7 +88,9 @@
       "firstName": "Sohub",
       "lastName": "User",
       "pin": "123456",
-      "createdAt": "2026-02-14T17:40:08.880Z"
+      "createdAt": "2026-02-14T17:40:08.880Z",
+      "universalKey": "KD_fe77d725-8134-4bfc-bb1e-322e2410fa8c_UNIVERSAL_1772186538627_352e8d88",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.627Z"
     },
     {
       "id": "1348d765-e462-4b46-9c9d-a40384d4d0c2",
@@ -86,7 +100,9 @@
       "firstName": "Raiden",
       "lastName": "User",
       "pin": "101210",
-      "createdAt": "2026-02-16T01:16:29.980Z"
+      "createdAt": "2026-02-16T01:16:29.980Z",
+      "universalKey": "KD_1348d765-e462-4b46-9c9d-a40384d4d0c2_UNIVERSAL_1772186538627_807e7651",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.627Z"
     },
     {
       "id": "0aa4e323-89a2-4c47-becc-293952321426",
@@ -98,7 +114,9 @@
       "pin": "101012",
       "createdAt": "2026-02-16T01:17:37.660Z",
       "points": 1e+84,
-      "updatedAt": "2026-02-16T03:04:15.705Z"
+      "updatedAt": "2026-02-16T03:04:15.705Z",
+      "universalKey": "KD_0aa4e323-89a2-4c47-becc-293952321426_UNIVERSAL_1772186538627_04ec7f74",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.627Z"
     },
     {
       "id": "500afcd7-7a3b-4d8d-b4a2-119084a6a962",
@@ -108,7 +126,9 @@
       "firstName": "ฟลุ๊คดิกดำ",
       "lastName": "User",
       "pin": "341234",
-      "createdAt": "2026-02-16T03:05:45.660Z"
+      "createdAt": "2026-02-16T03:05:45.660Z",
+      "universalKey": "KD_500afcd7-7a3b-4d8d-b4a2-119084a6a962_UNIVERSAL_1772186538627_0297067d",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.627Z"
     },
     {
       "id": "97d17dd4-b1b6-491e-be15-bbaf712120fd",
@@ -118,7 +138,9 @@
       "firstName": "dgdgd",
       "lastName": "User",
       "pin": "889970",
-      "createdAt": "2026-02-16T13:49:40.195Z"
+      "createdAt": "2026-02-16T13:49:40.195Z",
+      "universalKey": "KD_97d17dd4-b1b6-491e-be15-bbaf712120fd_UNIVERSAL_1772186538628_ffbd5b01",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.628Z"
     },
     {
       "id": "bdc5a984-b219-4f49-a0ad-4e4a4b37d645",
@@ -129,7 +151,9 @@
       "pin": "1234",
       "points": 0,
       "createdAt": "2026-02-18T14:39:08.298Z",
-      "updatedAt": "2026-02-18T14:39:08.298Z"
+      "updatedAt": "2026-02-18T14:39:08.298Z",
+      "universalKey": "KD_bdc5a984-b219-4f49-a0ad-4e4a4b37d645_UNIVERSAL_1772186538628_7016e20c",
+      "universalKeyCreatedAt": "2026-02-27T10:02:18.628Z"
     }
   ]
 }

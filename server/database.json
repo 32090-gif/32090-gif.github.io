@@ -1,0 +1,196 @@
+{
+  "dashboardData": {
+    "1c6d0c1d-6e85-457c-9fd0-de871b7818f9": {
+      "Bloxfruit": {
+        "players": {
+          "Kunlun_007": {
+            "devil_fruit": [],
+            "bounty": 50,
+            "melee": [
+              {
+                "image": "",
+                "name": "Combat"
+              }
+            ],
+            "accessories": [],
+            "money": 650,
+            "sword": [],
+            "updated_at": "2026-02-26T18:51:47.882Z",
+            "fragment": 0,
+            "avatar_url": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-054C75BB091F7C477849FD7BBDA3272F-Png/420/420/AvatarHeadshot/Png/noFilter",
+            "type": "PRO-VISUAL",
+            "pc": "Local-Machine",
+            "level": "5",
+            "race": "Skypiea",
+            "world": 1
+          },
+          "Talvor74950": {
+            "bounty": 2494256,
+            "melee": [
+              {
+                "sprite": {
+                  "y": 1,
+                  "x": 153,
+                  "w": 150,
+                  "h": 150
+                },
+                "image": "rbxassetid://131065686000839",
+                "name": "Godhuman"
+              }
+            ],
+            "money": 18606002,
+            "sword": [
+              {
+                "sprite": {
+                  "y": 1,
+                  "x": 153,
+                  "w": 150,
+                  "h": 150
+                },
+                "image": "rbxassetid://109138793736476",
+                "name": "Cursed Dual Katana"
+              }
+            ],
+            "accessories": [
+              {
+                "sprite": {
+                  "y": 609,
+                  "x": 1,
+                  "w": 150,
+                  "h": 150
+                },
+                "image": "rbxassetid://70432874253925",
+                "name": "Zebra Cap"
+              }
+            ],
+            "devil_fruit": [
+              {
+                "sprite": {
+                  "y": 153,
+                  "x": 761,
+                  "w": 150,
+                  "h": 150
+                },
+                "image": "rbxassetid://3368497238",
+                "name": "Lightning-Lightning"
+              }
+            ],
+            "updated_at": "2026-02-27T12:43:50.232Z",
+            "fragment": 71583,
+            "avatar_url": "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-80D4201564D3BAC0CBB9172C7A6BDBBE-Png/420/420/AvatarHeadshot/Png/noFilter",
+            "gun": [
+              {
+                "sprite": {
+                  "y": 609,
+                  "x": 457,
+                  "w": 150,
+                  "h": 150
+                },
+                "image": "rbxassetid://91906971333513",
+                "name": "Skull Guitar"
+              }
+            ],
+            "type": "PRO-VISUAL",
+            "level": "2618",
+            "race": "Cyborg",
+            "world": 3,
+            "username": "Talvor74950",
+            "displayName": "Talvor74950",
+            "id": "Talvor74950",
+            "game": "Bloxfruit",
+            "discordId": "1c6d0c1d-6e85-457c-9fd0-de871b7818f9",
+            "timestamp": "2026-02-27T12:43:50.000Z",
+            "status": "online",
+            "sessionProfit": 0,
+            "stats": {
+              "totalMoney": 18606002,
+              "level": 2618,
+              "onlineTime": 1772196230232
+            },
+            "items": [
+              {
+                "name": "Godhuman",
+                "category": "Item",
+                "image": "rbxassetid://131065686000839",
+                "sprite": {
+                  "y": 1,
+                  "x": 153,
+                  "w": 150,
+                  "h": 150
+                }
+              },
+              {
+                "name": "Cursed Dual Katana",
+                "category": "Item",
+                "image": "rbxassetid://109138793736476",
+                "sprite": {
+                  "y": 1,
+                  "x": 153,
+                  "w": 150,
+                  "h": 150
+                }
+              },
+              {
+                "name": "Skull Guitar",
+                "category": "Item",
+                "image": "rbxassetid://91906971333513",
+                "sprite": {
+                  "y": 609,
+                  "x": 457,
+                  "w": 150,
+                  "h": 150
+                }
+              },
+              {
+                "name": "Lightning-Lightning",
+                "category": "Item",
+                "image": "rbxassetid://3368497238",
+                "sprite": {
+                  "y": 153,
+                  "x": 761,
+                  "w": 150,
+                  "h": 150
+                }
+              },
+              {
+                "name": "Zebra Cap",
+                "category": "Item",
+                "image": "rbxassetid://70432874253925",
+                "sprite": {
+                  "y": 609,
+                  "x": 1,
+                  "w": 150,
+                  "h": 150
+                }
+              }
+            ]
+          }
+        },
+        "stats": {
+          "totalMoney": 18606652,
+          "totalPlayers": 2,
+          "avgLevel": 1312,
+          "lastUpdate": "2026-02-27T12:43:50.232Z"
+        }
+      },
+      "Blockspin": {
+        "players": {},
+        "stats": {
+          "totalMoney": 0,
+          "totalPlayers": 0,
+          "avgLevel": 0,
+          "lastUpdate": null
+        }
+      },
+      "PetSimulator99": {
+        "players": {},
+        "stats": {
+          "totalMoney": 0,
+          "totalPlayers": 0,
+          "avgLevel": 0,
+          "lastUpdate": null
+        }
+      }
+    }
+  }
+}

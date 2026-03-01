@@ -1,4 +1,4 @@
-import { ShoppingCart, User, Menu, Search, Gamepad2, Star, LogOut, Package, Settings, Key } from "lucide-react";
+import { ShoppingCart, User, Menu, Search, Gamepad2, Star, LogOut, Package, Settings, Key, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -29,6 +29,7 @@ const Navbar = () => {
     { href: "/categories", label: "หมวดหมู่" },
     { href: "/topup", label: "เติมเงิน" },
     { href: "/get-key", label: "Get Key" },
+    { href: "/dashboard", label: "Dashboard" },
   ];
 
   useEffect(() => {

@@ -7,10 +7,133 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
+const dbManager = require('./database-manager');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'kunlun-secret-key-2026';
+
+// ระบบป้องกัน API
+const API_SECURITY = {
+  // Rate limiting
+  rateLimit: new Map(),
+  maxRequests: 100, // 100 requests per 15 minutes
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  
+  // IP blocking
+  blockedIPs: new Set(),
+  suspiciousIPs: new Set(),
+  
+  // API Key protection
+  apiKeys: new Set(['kunlun-api-key-2026', 'slumzick-secure-key']),
+  
+  // Request tracking
+  requestCounts: new Map(),
+  lastRequestTime: new Map()
+};
+
+// Rate limiting middleware
+const rateLimiter = (req, res, next) => {
+  const clientIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
+  const now = Date.now();
+  
+  // Check if IP is blocked
+  if (API_SECURITY.blockedIPs.has(clientIP)) {
+    return res.status(403).json({
+      success: false,
+      message: '5555555555555555555555555555555 IP ถูกบล็อกแล้ว หวัง API ฟรีหรอ?',
+      blocked: true
+    });
+  }
+  
+  // Check rate limit
+  const requestData = API_SECURITY.rateLimit.get(clientIP);
+  if (!requestData) {
+    API_SECURITY.rateLimit.set(clientIP, {
+      count: 1,
+      resetTime: now + API_SECURITY.windowMs
+    });
+    return next();
+  }
+  
+  if (now > requestData.resetTime) {
+    // Reset window
+    API_SECURITY.rateLimit.set(clientIP, {
+      count: 1,
+      resetTime: now + API_SECURITY.windowMs
+    });
+    return next();
+  }
+  
+  if (requestData.count >= API_SECURITY.maxRequests) {
+    // Add to suspicious IPs
+    API_SECURITY.suspiciousIPs.add(clientIP);
+    
+    return res.status(429).json({
+      success: false,
+      message: '5555555555555555555555555555555 ส่ง request เยอะไปหรอ? หวัง API ฟรีหรอ?',
+      retryAfter: Math.ceil((requestData.resetTime - now) / 1000),
+      rateLimit: true
+    });
+  }
+  
+  requestData.count++;
+  next();
+};
+
+// API Key validation middleware
+const validateAPIKey = (req, res, next) => {
+  const apiKey = req.headers['x-api-key'];
+  const userAgent = req.headers['user-agent'] || '';
+  
+  // ต้องมี API key เสมอ ไม่ว่าจะเป็น browser หรือ bot
+  if (!apiKey) {
+    API_SECURITY.suspiciousIPs.add(req.ip);
+    return res.status(401).json({
+      success: false,
+      message: '5555555555555555555555555555555 หวังใช้ API ฟรีหรอ? จ่ายตังค์ก่อนนะ!',
+      suspicious: true
+    });
+  }
+  
+  // Validate API key
+  if (!API_SECURITY.apiKeys.has(apiKey)) {
+    return res.status(401).json({
+      success: false,
+      message: '5555555555555555555555555555555 API key ผิด หวังใช้ฟรีหรอ?',
+      invalidKey: true
+    });
+  }
+  
+  next();
+};
+
+// Request logging and monitoring
+const requestMonitor = (req, res, next) => {
+  const clientIP = req.ip || req.connection.remoteAddress;
+  const userAgent = req.headers['user-agent'] || '';
+  const now = Date.now();
+  
+  // Track request patterns
+  const requestCount = API_SECURITY.requestCounts.get(clientIP) || 0;
+  API_SECURITY.requestCounts.set(clientIP, requestCount + 1);
+  API_SECURITY.lastRequestTime.set(clientIP, now);
+  
+  // Log suspicious activity
+  if (requestCount > 50) { // More than 50 requests total
+    console.log(`🚨 Suspicious activity detected from ${clientIP}: ${requestCount} requests`);
+    console.log(`User-Agent: ${userAgent}`);
+    console.log(`Endpoint: ${req.method} ${req.url}`);
+  }
+  
+  // Auto-block extremely suspicious IPs
+  if (requestCount > 200) {
+    API_SECURITY.blockedIPs.add(clientIP);
+    console.log(`🔒 Auto-blocking IP: ${clientIP} (${requestCount} requests)`);
+  }
+  
+  next();
+};
 
 // Configure multer for file uploads
 const upload = multer({
@@ -41,123 +164,6 @@ const upload = multer({
   }
 });
 
-// Profile helper functions
-const getUserProfile = (userId) => {
-  try {
-    const data = readUsersFromFile();
-    const user = data.users.find(u => u.id === userId);
-    
-    if (!user) return null;
-    
-    // Return safe profile data
-    // Get user orders
-    const userOrders = getUserOrders(userId);
-    
-    // Calculate total spent
-    const totalSpent = userOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
-    
-    return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      avatar: user.avatar || null,
-      pin: user.pin,
-      points: user.points || 0,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      // Additional profile data
-      totalOrders: userOrders.length,
-      totalSpent: totalSpent,
-      recentOrders: userOrders.slice(0, 5) // Last 5 orders
-    };
-  } catch (error) {
-    console.error('Error getting user profile:', error);
-    return null;
-  }
-};
-
-const updateUserProfile = (userId, updates) => {
-  try {
-    const data = readUsersFromFile();
-    const userIndex = data.users.findIndex(u => u.id === userId);
-    
-    if (userIndex === -1) return null;
-    
-    // Update allowed fields
-    const allowedFields = ['username', 'email', 'firstName', 'lastName', 'avatar'];
-    allowedFields.forEach(field => {
-      if (updates[field] !== undefined) {
-        data.users[userIndex][field] = updates[field];
-      }
-    });
-    
-    data.users[userIndex].updatedAt = new Date().toISOString();
-    
-    const success = writeUsersToFile(data);
-    if (!success) return null;
-    
-    return getUserProfile(userId);
-  } catch (error) {
-    console.error('Error updating user profile:', error);
-    return null;
-  }
-};
-
-const processAvatarUpload = (avatarFile, userId) => {
-  try {
-    if (!avatarFile) {
-      console.log('No avatar file provided');
-      return null;
-    }
-    
-    console.log('Processing avatar upload:', {
-      originalname: avatarFile.originalname,
-      mimetype: avatarFile.mimetype,
-      size: avatarFile.size,
-      path: avatarFile.path
-    });
-    
-    // Define avatar paths
-    const avatarName = `avatar-${userId}.jpg`;
-    const oldPath = avatarFile.path; // Already full path
-    const newPath = path.join(__dirname, 'uploads', 'avatars', avatarName);
-    
-    console.log('File paths:', {
-      oldPath,
-      newPath
-    });
-    
-    // Ensure uploads/avatars directory exists
-    const avatarDir = path.join(__dirname, 'uploads', 'avatars');
-    if (!fs.existsSync(avatarDir)) {
-      fs.mkdirSync(avatarDir, { recursive: true });
-      console.log('Created avatars directory:', avatarDir);
-    }
-    
-    // Delete old avatar if it exists
-    if (fs.existsSync(newPath)) {
-      fs.unlinkSync(newPath);
-      console.log('Deleted old avatar:', newPath);
-    }
-    
-    // Move and rename uploaded file
-    fs.renameSync(oldPath, newPath);
-    console.log('Successfully moved file to:', newPath);
-    
-    return `/uploads/avatars/${avatarName}`;
-  } catch (error) {
-    console.error('Error processing avatar upload:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code
-    });
-    return null;
-  }
-};
-
 // Middleware
 app.use(cors({
   origin: [
@@ -170,11 +176,16 @@ app.use(cors({
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
 }));
 
 // Handle preflight requests
 app.options('*', cors());
+
+// Apply security middleware
+app.use(requestMonitor);
+app.use(rateLimiter);
+// ไม่ใส่ validateAPIKey ตรงนี้ เพื่อให้ frontend ทำงานได้
 
 // Serve static files from dist directory
 app.use(express.static(path.join(__dirname, '..', 'dist')));
@@ -555,16 +566,16 @@ if (!fs.existsSync(DATA_FILE)) {
 // Routes
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', rateLimiter, (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'Slumzick API is running',
+    message: 'API is running',
     timestamp: new Date().toISOString()
   });
 });
 
 // Get all users (for admin purposes - in production, this should be protected)
-app.get('/api/users', (req, res) => {
+app.get('/api/users', rateLimiter, validateAPIKey, (req, res) => {
   try {
     const data = readUsersFromFile();
     // Don't return passwords
@@ -612,15 +623,26 @@ app.post('/api/register', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Generate user ID first
+    const userId = uuidv4();
+
+    // Generate universal key for new user
+    const timestamp = Date.now();
+    const randomHash = crypto.randomBytes(4).toString('hex');
+    const universalKey = `KD_${userId}_UNIVERSAL_${timestamp}_${randomHash}`;
+
     // Create new user
     const newUser = {
-      id: uuidv4(),
+      id: userId,
       username,
       email,
       password: hashedPassword,
       firstName,
       lastName,
       pin,
+      points: 0,
+      universalKey: universalKey,
+      universalKeyCreatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString()
     };
 
@@ -756,8 +778,7 @@ const verifyToken = (req, res, next) => {
   if (!token) {
     console.log('No token provided');
     return res.status(401).json({
-      success: false,
-      message: 'ไม่พบ token การยืนยันตัวตน'
+      message: '5555555555555555555555555555555'
     });
   }
 
@@ -959,7 +980,7 @@ app.delete('/api/user/avatar', verifyToken, (req, res) => {
 // ===== END PROFILE SYSTEM =====
 
 // Get vouchers
-app.get('/api/vouchers', (req, res) => {
+app.get('/api/vouchers', rateLimiter, validateAPIKey, (req, res) => {
   try {
     const data = readVouchersFromFile();
     res.json({ success: true, vouchers: data.vouchers });
@@ -1022,7 +1043,7 @@ app.post('/api/vouchers/use', verifyToken, (req, res) => {
 });
 
 // Topup endpoints
-app.get('/api/topups/stats', (req, res) => {
+app.get('/api/topups/stats', rateLimiter, validateAPIKey, (req, res) => {
   try {
     const topupData = readTopupsFromFile();
     const userData = readUsersFromFile();
@@ -2258,7 +2279,7 @@ app.use((error, req, res, next) => {
 });
 
 // Stock/Products endpoints
-app.get('/api/products', (req, res) => {
+app.get('/api/products', rateLimiter, validateAPIKey, (req, res) => {
   try {
     const items = getAllStockItems();
     const activeItems = items.filter(item => item.status === 'active' && item.stock > 0);
@@ -2274,7 +2295,7 @@ app.get('/api/products', (req, res) => {
   }
 });
 
-app.get('/api/products/:id', (req, res) => {
+app.get('/api/products/:id', rateLimiter, validateAPIKey, (req, res) => {
   try {
     const { id } = req.params;
     const item = getStockItem(id);
@@ -2651,7 +2672,7 @@ const writeAnnouncementsToFile = (announcements) => {
 };
 
 // GET /api/announcements - Get all announcements
-app.get('/api/announcements', (req, res) => {
+app.get('/api/announcements', rateLimiter, validateAPIKey, (req, res) => {
   try {
     const announcements = readAnnouncementsFromFile();
     res.json({
@@ -3007,6 +3028,295 @@ app.post('/api/reviews/:reviewId/helpful', verifyToken, (req, res) => {
   }
 });
 
+// Dashboard Update endpoint (Kunlun Script Compatible)
+app.post('/api/dashboard/update', async (req, res) => {
+  try {
+    const { key, data: requestData } = req.body;
+    
+    if (!key) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing dashboard key'
+      });
+    }
+    
+    if (!requestData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing data payload'
+      });
+    }
+    
+    // Extract userId from universal key (format: KD_{userId}_UNIVERSAL_{timestamp}_{random})
+    const keyParts = key.split('_');
+    if (keyParts.length < 2 || keyParts[0] !== 'KD') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid dashboard key format'
+      });
+    }
+    
+    const userId = keyParts[1];
+    
+    // Process and update dashboard data for each player
+    const updatedGames = {};
+    
+    for (const [playerName, playerData] of Object.entries(requestData)) {
+      // Detect game from player data structure
+      let gameName = 'Unknown';
+      
+      if (playerData.melee || playerData.sword || playerData.fruit_inventory) {
+        gameName = 'Bloxfruit';
+      } else if (playerData.pocketMoney !== undefined || playerData.atmMoney !== undefined) {
+        gameName = 'Blockspin';
+      } else if (playerData.diamonds !== undefined || playerData.rapids !== undefined) {
+        gameName = 'PetSimulator99';
+      }
+      
+      // Convert Kunlun data format to dashboard format
+      const dashboardPlayerData = {
+        ...playerData,
+        username: playerName,
+        displayName: playerName,
+        id: playerData.id || playerName,
+        game: gameName,
+        discordId: userId,
+        timestamp: playerData.updated_at || new Date().toISOString(),
+        status: "online",
+        sessionProfit: 0,
+        stats: {
+          totalMoney: playerData.money || playerData.pocketMoney || 0,
+          level: parseInt(playerData.level) || 0,
+          onlineTime: Date.now()
+        },
+        // Convert item arrays to dashboard format
+        items: [
+          ...(playerData.melee || []),
+          ...(playerData.sword || []),
+          ...(playerData.gun || []),
+          ...(playerData.devil_fruit || []),
+          ...(playerData.fruit_inventory || []),
+          ...(playerData.accessories || [])
+        ].map(item => ({
+          name: item.name || 'Unknown',
+          category: item.category || 'Item',
+          image: item.image || '',
+          sprite: item.sprite || undefined
+        }))
+      };
+      
+      // Update database
+      dbManager.updateDashboardData(userId, gameName, {
+        [playerName]: dashboardPlayerData
+      });
+      
+      updatedGames[gameName] = true;
+    }
+    
+    console.log(`📡 Dashboard updated for user ${userId}, games: ${Object.keys(updatedGames).join(', ')}`);
+    
+    res.json({
+      success: true,
+      message: 'Dashboard data updated successfully',
+      updatedGames: Object.keys(updatedGames),
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error updating dashboard data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// Get User Universal Key endpoint
+app.get('/api/dashboard/universal-key', verifyToken, (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const data = readUsersFromFile();
+    const user = data.users.find(u => u.id === userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Check if user has universal key
+    if (!user.universalKey) {
+      return res.json({
+        success: true,
+        universalKey: null,
+        createdAt: null,
+        hasData: false,
+        message: 'No universal key found'
+      });
+    }
+    
+    // Check if there's dashboard data in database.json
+    const dashboardData = dbManager.getDashboardData(userId);
+    
+    if (!dashboardData) {
+      return res.json({
+        success: true,
+        universalKey: user.universalKey,
+        createdAt: user.universalKeyCreatedAt,
+        hasData: false,
+        message: 'No dashboard data found'
+      });
+    }
+    
+    // Return data similar to /api/dashboard/logs
+    const allGames = Object.keys(dashboardData);
+    const totalPlayers = Object.values(dashboardData).reduce((sum, game) => sum + (game.players ? Object.keys(game.players).length : 0), 0);
+    
+    res.json({
+      success: true,
+      universalKey: user.universalKey,
+      createdAt: user.universalKeyCreatedAt,
+      hasData: true,
+      data: dashboardData,
+      stats: {
+        totalGames: allGames.length,
+        totalPlayers: totalPlayers,
+        games: allGames
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error getting Universal Key:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// Delete Account endpoint
+app.delete('/api/dashboard/account', verifyToken, (req, res) => {
+  try {
+    const { key, game, account } = req.query;
+    
+    if (!key || !game || !account) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required parameters: key, game, account'
+      });
+    }
+    
+    // Extract userId from universal key (format: KD_{userId}_UNIVERSAL_{timestamp}_{random})
+    const keyParts = key.split('_');
+    if (keyParts.length < 2 || keyParts[0] !== 'KD') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid dashboard key format'
+      });
+    }
+    
+    const userId = keyParts[1];
+    
+    // Delete account from database
+    const success = dbManager.deleteAccount(userId, game, account);
+    
+    if (success) {
+      console.log(`🗑️ Account ${account} deleted from game ${game} for user ${userId}`);
+      res.json({
+        success: true,
+        message: 'Account deleted successfully',
+        deletedAccount: account,
+        game: game
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'Account not found'
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// Dashboard data endpoint
+app.get('/api/dashboard/logs', async (req, res) => {
+  try {
+    const { key, game } = req.query;
+    
+    if (!key) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing dashboard key'
+      });
+    }
+    
+    // Extract userId from key (format: KD_{userId}_{gameName}_{timestamp}_{random})
+    const keyParts = key.split('_');
+    if (keyParts.length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid dashboard key format'
+      });
+    }
+    
+    const userId = keyParts[1];
+    
+    // Get dashboard data
+    let dashboardData;
+    if (game) {
+      dashboardData = dbManager.getDashboardData(userId, game);
+    } else {
+      dashboardData = dbManager.getDashboardData(userId);
+    }
+    
+    if (!dashboardData) {
+      return res.json({
+        success: false,
+        message: 'No dashboard data found',
+        data: null
+      });
+    }
+    
+    if (game) {
+      // Return specific game data
+      const players = dashboardData.players || {};
+      const playerNames = Object.keys(players);
+      
+      res.json({
+        success: true,
+        message: 'Dashboard data retrieved successfully',
+        data: {
+          hasData: playerNames.length > 0,
+          players: playerNames.length,
+          playersData: players,
+          stats: dashboardData.stats || {}
+        }
+      });
+    } else {
+      // Return all games data
+      res.json({
+        success: true,
+        message: 'All dashboard data retrieved successfully',
+        data: dashboardData
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
 // Catch-all handler: send back React's index.html file for SPA routes
 app.get('*', (req, res) => {
   // Only serve index.html for non-API routes
@@ -3021,7 +3331,7 @@ app.get('*', (req, res) => {
     console.log('API 404 handler reached for:', req.method, req.originalUrl);
     res.status(404).json({
       success: false,
-      message: 'API endpoint not found'
+      message: 'endpoint not found'
     });
   }
 });
