@@ -235,7 +235,7 @@ class UnifiedSecuritySystem {
       } catch (error) {
         console.error('Security middleware error:', error);
         
-        if (this.config.global.failClosed) {
+        if (this.config && this.config.global && this.config.global.failClosed) {
           res.status(503).json({
             error: 'Security System Error',
             message: 'Request blocked due to security system failure'

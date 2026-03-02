@@ -9,7 +9,7 @@ const UnifiedSecuritySystem = require('./security/index');
 const security = new UnifiedSecuritySystem({
   // โหมดความปลอดภัย - balanced เหมาะสำหรับการใช้งานทั่วไป
   securityMode: 'balanced',
-  failClosed: true, // บล็อกคำขอถ้าระบบความปลอดภัยล้มเหลว
+  failClosed: false, // ไม่บล็อกคำขอถ้าระบบความปลอดภัยล้มเหลว
   
   // DDoS Protection
   ddosProtection: {
