@@ -5,8 +5,9 @@
 
 const crypto = require('crypto');
 const validator = require('validator'); // npm install validator
+const EventEmitter = require('events');
 
-class RequestValidator {
+class RequestValidator extends EventEmitter {
   constructor(options = {}) {
     this.config = {
       // General validation

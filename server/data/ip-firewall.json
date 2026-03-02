@@ -1,0 +1,17 @@
+{
+  "blockedIPs": [],
+  "monitoredIPs": [],
+  "ipReputation": [],
+  "stats": {
+    "totalBlocks": 0,
+    "autoBlocks": 0,
+    "manualBlocks": 0,
+    "geoBlocks": 0,
+    "reputationBlocks": 0,
+    "networkBlocks": 0,
+    "totalRequests": 0,
+    "blockedRequests": 0,
+    "lastCleanup": 1772460990172
+  },
+  "timestamp": 1772464819991
+}

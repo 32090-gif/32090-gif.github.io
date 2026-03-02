@@ -408,7 +408,7 @@ module.exports.initialize = async (app) => {
     
     console.log('✅ Security Integration initialized successfully');
     console.log(`📊 Active Components: ${Object.keys(security.components).length}`);
-    console.log(`🔒 Security Mode: ${security.config.global.securityMode}`);
+    console.log(`🔒 Security Mode: ${security.config ? security.config.global.securityMode : 'unknown'}`);
     
     return true;
   } catch (error) {
