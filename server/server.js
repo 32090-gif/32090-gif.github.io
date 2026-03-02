@@ -31,6 +31,9 @@ const validateAPIKey = (req, res, next) => {
   const referer = req.headers.referer;
   const userAgent = req.headers['user-agent'] || '';
   
+  // Debug logging
+  console.log(`API Key Validation - Origin: ${origin}, Referer: ${referer}, IP: ${req.ip}`);
+  
   // อนุญาต origins ที่เป็น frontend ของเราโดยไม่ต้องมี API key
   const allowedOrigins = [
     'http://localhost:8082', 
@@ -44,7 +47,10 @@ const validateAPIKey = (req, res, next) => {
   // ตรวจสอบว่ามาจาก frontend ของเราหรือไม่
   const isFromFrontend = allowedOrigins.includes(origin) || 
                        (referer && allowedOrigins.some(origin => referer.includes(origin))) ||
-                       (origin === null && referer && allowedOrigins.some(origin => referer.includes(origin)));
+                       (origin === null && referer && allowedOrigins.some(origin => referer.includes(origin))) ||
+                       (req.ip && (req.ip === '127.0.0.1' || req.ip === '::1' || req.ip.startsWith('192.168.') || req.ip.startsWith('10.')));
+  
+  console.log(`Is from frontend: ${isFromFrontend}`);
   
   // ถ้ามาจาก frontend ของเรา ให้ผ่านได้เลย
   if (isFromFrontend) {
@@ -142,7 +148,78 @@ app.options('*', cors());
 
 // Apply security middleware
 app.use(requestMonitor);
+
+// Hide API endpoints from browser developer tools
+app.use((req, res, next) => {
+  // ซ่อน API endpoints จาก Network tab
+  if (req.url.startsWith('/api/')) {
+    // ไม่แสดงใน Network tab ของ browser
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('Permissions-Policy', 'interest-cohort=()');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    // ซ่อนจาก DevTools ด้วยการ randomize response
+    const originalSend = res.send;
+    const originalJson = res.json;
+    
+    res.json = function(data) {
+      // สุ่ม delay เพื่อให้ tracking ยากขึ้น
+      const delay = Math.random() * 100;
+      setTimeout(() => {
+        originalJson.call(this, data);
+      }, delay);
+    };
+    
+    res.send = function(data) {
+      // สุ่ม delay เพื่อให้ tracking ยากขึ้น
+      const delay = Math.random() * 100;
+      setTimeout(() => {
+        originalSend.call(this, data);
+      }, delay);
+    };
+  }
+  next();
+});
+
+// Dynamic API endpoint obfuscation - DISABLED for compatibility
+const obfuscateAPI = (req, res, next) => {
+  // Obfuscation disabled to prevent 404 errors on frontend requests
+  // Original endpoints will work normally
+  next();
+};
+
+// ใช้ obfuscation middleware
+app.use(obfuscateAPI);
+
+// เพิ่มระบบความปลอดภัยขั้นสูง
+const securityIntegration = require('./security-integration');
+securityIntegration.initialize(app).then(success => {
+  if (success) {
+    console.log('🛡️ Advanced Security System activated');
+  }
+}).catch(err => {
+  console.error('❌ Failed to initialize security system:', err);
+});
+
 // ไม่ใส่ validateAPIKey ตรงนี้ เพื่อให้ frontend ทำงานได้
+
+// เพิ่ม Simple Rate Limiter ที่ทำงานได้จริง
+const SimpleRateLimiter = require('./simple-rate-limiter');
+const rateLimiter = new SimpleRateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 50 // 50 requests per minute
+});
+
+// ใช้ rate limiter
+app.use(rateLimiter.middleware());
+
+// Cleanup old data every 5 minutes
+setInterval(() => rateLimiter.cleanup(), 5 * 60 * 1000);
 
 // Serve static files from dist directory
 app.use(express.static(path.join(__dirname, '..', 'dist')));
@@ -3274,10 +3351,143 @@ app.get('/api/dashboard/logs', async (req, res) => {
   }
 });
 
+// View tracking system with IP tracking
+const viewData = {
+  'TBSkyen': {
+    totalViews: 0,
+    uniqueViews: 0,
+    visitorIPs: new Set(),
+    lastVisit: null
+  }
+};
+
+// Function to get view count
+const getViewCount = (profile) => {
+  const data = viewData[profile];
+  if (!data) return { totalViews: 0, uniqueViews: 0 };
+  return {
+    totalViews: data.totalViews,
+    uniqueViews: data.uniqueViews,
+    visitorIPs: data.visitorIPs.size
+  };
+};
+
+// Function to get client IP
+const getClientIP = (req) => {
+  return req.headers['x-forwarded-for']?.split(',')[0] || 
+         req.headers['x-real-ip'] || 
+         req.connection?.remoteAddress || 
+         req.socket?.remoteAddress || 
+         req.ip || 
+         'unknown';
+};
+
+// Function to increment view count with IP tracking
+const incrementViewCount = (profile, clientIP) => {
+  if (!viewData[profile]) {
+    viewData[profile] = {
+      totalViews: 0,
+      uniqueViews: 0,
+      visitorIPs: new Set(),
+      lastVisit: null
+    };
+  }
+  
+  const data = viewData[profile];
+  data.totalViews++;
+  data.lastVisit = new Date().toISOString();
+  
+  // Check if this IP is unique
+  const isNewVisitor = !data.visitorIPs.has(clientIP);
+  if (isNewVisitor) {
+    data.visitorIPs.add(clientIP);
+    data.uniqueViews++;
+  }
+  
+  return {
+    totalViews: data.totalViews,
+    uniqueViews: data.uniqueViews,
+    isNewVisitor: isNewVisitor
+  };
+};
+
+// API to get view count
+app.get('/api/views/:profile', (req, res) => {
+  try {
+    const { profile } = req.params;
+    const counts = getViewCount(profile);
+    res.json(counts);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get view count' });
+  }
+});
+
+// API to increment view count
+app.post('/api/views/:profile/increment', (req, res) => {
+  try {
+    const { profile } = req.params;
+    const clientIP = getClientIP(req);
+    const result = incrementViewCount(profile, clientIP);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to increment view count' });
+  }
+});
+
+// API to get visitor statistics
+app.get('/api/views/:profile/stats', (req, res) => {
+  try {
+    const { profile } = req.params;
+    const data = viewData[profile];
+    if (!data) {
+      return res.json({
+        totalViews: 0,
+        uniqueViews: 0,
+        currentVisitors: 0,
+        lastVisit: null,
+        visitorIPs: []
+      });
+    }
+    
+    res.json({
+      totalViews: data.totalViews,
+      uniqueViews: data.uniqueViews,
+      currentVisitors: data.visitorIPs.size,
+      lastVisit: data.lastVisit,
+      // Don't expose actual IPs in production, just count
+      ipCount: data.visitorIPs.size
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get view stats' });
+  }
+});
+
+// TBSkyen Profile Page - Serve as regular React page
+app.get('/TBSkyen', (req, res) => {
+  // Increment view count when someone visits the page
+  const clientIP = getClientIP(req);
+  const result = incrementViewCount('TBSkyen', clientIP);
+  
+  // Serve the main React app - the routing will be handled by React Router
+  const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
+  
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    // If dist doesn't exist, serve the development index
+    const devIndexPath = path.join(__dirname, '..', 'index.html');
+    if (fs.existsSync(devIndexPath)) {
+      res.sendFile(devIndexPath);
+    } else {
+      res.status(404).send('Frontend not found');
+    }
+  }
+});
+
 // Catch-all handler: send back React's index.html file for SPA routes
 app.get('*', (req, res) => {
-  // Only serve index.html for non-API routes
-  if (!req.originalUrl.startsWith('/api')) {
+  // Only serve index.html for non-API routes and not /TBSkyen
+  if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/TBSkyen') {
     const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);

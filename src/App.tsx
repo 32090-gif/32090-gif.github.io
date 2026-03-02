@@ -23,6 +23,7 @@ import Profile from "./pages/Profile";
 import ScriptManager from "./pages/ScriptManager";
 import WebhookLogs from "./pages/WebhookLogs";
 import Dashboard from "./pages/Dashboard";
+import TBSkyenPage from "./pages/TBSkyenPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
           <Route path="/dashboard/:game" element={<Dashboard />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/TBSkyen" element={<TBSkyenPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
