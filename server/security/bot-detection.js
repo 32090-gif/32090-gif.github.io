@@ -71,21 +71,16 @@ class BotDetection extends EventEmitter {
     };
 
     // Bot signatures
+    // เน้นเฉพาะ bot/scraper ที่ทำร้ายจริง ไม่ใช่ user ทั่วไปหรือ API client ปกติ
     this.botSignatures = {
       userAgents: [
-        /bot/i, /crawler/i, /spider/i, /scraper/i,
-        /curl/i, /wget/i, /python/i, /java/i,
-        /go-http/i, /node/i, /ruby/i, /php/i,
-        /perl/i, /lwp/i, /mechanize/i, /selenium/i,
-        /phantom/i, /headless/i, /chromeless/i
+        /\bbot\b/i, /\bcrawler\b/i, /\bspider\b/i, /\bscraper\b/i,
+        /\blwp\b/i, /\bmechanize\b/i, /\bselenium\b/i,
+        /\bphantom\b/i, /\bheadless\b/i, /\bchromeless\b/i
       ],
       
       suspiciousUserAgents: [
-        /^$/, // Empty user agent
-        /^[a-z]+$/, // Only lowercase letters
-        /^[A-Z]+$/, // Only uppercase letters
-        /^\d+$/, // Only numbers
-        /^(.{0,5}|.{50,})$/ // Too short or too long
+        /^$/, // Empty user agent เท่านั้นที่น่าสงสัยจริงๆ
       ],
       
       knownBots: [
@@ -302,7 +297,7 @@ class BotDetection extends EventEmitter {
   analyzeUserAgent(userAgent) {
     let score = 0;
 
-    // Check against known bot signatures
+    // Check against known malicious bot signatures เท่านั้น
     for (const pattern of this.botSignatures.userAgents) {
       if (pattern.test(userAgent)) {
         score += 40;
@@ -310,7 +305,7 @@ class BotDetection extends EventEmitter {
       }
     }
 
-    // Check suspicious patterns
+    // Check suspicious patterns (เฉพาะ empty user agent)
     for (const pattern of this.botSignatures.suspiciousUserAgents) {
       if (pattern.test(userAgent)) {
         score += 25;
@@ -326,22 +321,8 @@ class BotDetection extends EventEmitter {
       }
     }
 
-    // Length analysis
-    if (userAgent.length < 10 || userAgent.length > 200) {
-      score += 15;
-    }
-
-    // Character analysis
-    const hasSpecialChars = /[^\w\s\.\-\/\(\)\;:]/.test(userAgent);
-    if (!hasSpecialChars && userAgent.length > 5) {
-      score += 10; // Too clean
-    }
-
-    // Missing common browser identifiers
-    const hasBrowser = /chrome|firefox|safari|edge|opera|msie/i.test(userAgent);
-    if (!hasBrowser && userAgent.length > 20) {
-      score += 20;
-    }
+    // ถ้า user agent ยาวสมเหตุสมผล ไม่ต้องตรวจเพิ่ม
+    // ไม่ penalize curl/wget/python/node เพราะอาจเป็น legitimate API client
 
     return Math.min(score, 100);
   }
@@ -352,17 +333,17 @@ class BotDetection extends EventEmitter {
 
     if (requests.length < 2) return score;
 
-    // Request frequency analysis
+    // Request frequency analysis - เฉพาะ high-volume จริงๆ
     const recentRequests = requests.filter(req => 
       Date.now() - req.timestamp < 60000 // Last minute
     );
 
-    if (recentRequests.length > 30) {
-      score += 25; // Too many requests
+    if (recentRequests.length > 60) {
+      score += 25; // มากกว่า 60 req/min ถึงน่าสงสัย
     }
 
-    // Request timing analysis (too consistent)
-    if (recentRequests.length >= 3) {
+    // Request timing analysis (too consistent) - ต้องมีหลักฐานชัดเจน
+    if (recentRequests.length >= 10) {
       const intervals = [];
       for (let i = 1; i < recentRequests.length; i++) {
         intervals.push(recentRequests[i].timestamp - recentRequests[i-1].timestamp);
@@ -372,27 +353,17 @@ class BotDetection extends EventEmitter {
       const variance = intervals.reduce((sum, interval) => 
         sum + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
 
-      // Low variance = bot-like behavior
-      if (variance < 1000) { // Very consistent timing
+      // Low variance = bot-like behavior (เฉพาะ request จำนวนมากมากๆ)
+      if (variance < 100 && recentRequests.length > 20) {
         score += 30;
       }
     }
 
-    // Endpoint diversity analysis
-    const uniqueEndpoints = session.endpoints.size;
-    if (uniqueEndpoints === 1 && requests.length > 10) {
-      score += 20; // Only hitting one endpoint
-    }
-
-    // User agent consistency
-    if (session.userAgents.size === 1 && requests.length > 5) {
-      score += 15; // Same user agent for all requests
-    }
-
+    // Endpoint diversity - ไม่ penalize การ hit endpoint เดียว เพราะ API client ทำได้
     // Sequential access patterns
     const endpoints = Array.from(session.endpoints);
     const isSequential = this.checkSequentialPattern(endpoints);
-    if (isSequential) {
+    if (isSequential && recentRequests.length > 30) {
       score += 25;
     }
 
@@ -406,41 +377,12 @@ class BotDetection extends EventEmitter {
 
     if (requestCount === 0) return score;
 
-    // Human interaction indicators
-    const totalInteractions = behaviors.mouseMovements + 
-                             behaviors.keyboardEvents + 
-                             behaviors.clicks + 
-                             behaviors.scrolls + 
-                             behaviors.touches;
+    // ไม่ penalize การไม่มี mouse/keyboard events
+    // เพราะ API requests จาก frontend หรือ mobile app ไม่มีข้อมูลนี้
 
-    // Low interaction for many requests = suspicious
-    if (requestCount > 10 && totalInteractions < 5) {
-      score += 35;
-    }
-
-    // Perfect interaction patterns (too regular) = suspicious
-    if (totalInteractions > 0) {
-      const interactionRatio = totalInteractions / requestCount;
-      if (interactionRatio > 2 && interactionRatio < 2.5) {
-        score += 20; // Too perfect
-      }
-    }
-
-    // No mouse movements but many clicks = suspicious
-    if (behaviors.clicks > 5 && behaviors.mouseMovements === 0) {
+    // เฉพาะถ้ามี click แต่ไม่มี mouse ที่ผิดปกติชัดๆ
+    if (behaviors.clicks > 20 && behaviors.mouseMovements === 0 && requestCount > 50) {
       score += 30;
-    }
-
-    // Instant page transitions (no time spent) = suspicious
-    const pageViews = session.requests.filter(req => 
-      req.method === 'GET' && req.url.endsWith('.html')
-    );
-
-    if (pageViews.length > 5) {
-      const avgPageTime = this.calculateAveragePageTime(pageViews);
-      if (avgPageTime < 1000) { // Less than 1 second per page
-        score += 25;
-      }
     }
 
     return Math.min(score, 100);

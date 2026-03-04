@@ -89,9 +89,9 @@ const requestMonitor = (req, res, next) => {
   API_SECURITY.requestCounts.set(clientIP, requestCount + 1);
   API_SECURITY.lastRequestTime.set(clientIP, now);
   
-  // Log suspicious activity
-  if (requestCount > 50) { // More than 50 requests total
-    console.log(`🚨 Suspicious activity detected from ${clientIP}: ${requestCount} requests`);
+  // Log suspicious activity — เพิ่ม threshold ให้สูงขึ้น ไม่ alert visitor ปกติ
+  if (requestCount > 500) { // More than 500 requests total
+    console.log(`🚨 Suspicious high-volume activity from ${clientIP}: ${requestCount} requests`);
     console.log(`User-Agent: ${userAgent}`);
     console.log(`Endpoint: ${req.method} ${req.url}`);
   }
@@ -209,10 +209,12 @@ securityIntegration.initialize(app).then(success => {
 // ไม่ใส่ validateAPIKey ตรงนี้ เพื่อให้ frontend ทำงานได้
 
 // เพิ่ม Simple Rate Limiter ที่ทำงานได้จริง
+// บล็อกเฉพาะ IP ที่ยิง request เกินจริงๆ ไม่กระทบ visitor ปกติ
 const SimpleRateLimiter = require('./simple-rate-limiter');
 const rateLimiter = new SimpleRateLimiter({
-  windowMs: 60 * 1000, // 1 minute
-  maxRequests: 50 // 50 requests per minute
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxRequests: 300,          // 300 requests per 15 min — visitor ปกติไม่ถึง
+  burstLimit: 30             // max 30 req/sec ก่อน block burst
 });
 
 // ใช้ rate limiter

@@ -11,26 +11,26 @@ const security = new UnifiedSecuritySystem({
   securityMode: 'balanced',
   failClosed: false, // ไม่บล็อกคำขอถ้าระบบความปลอดภัยล้มเหลว
   
-  // DDoS Protection
+  // DDoS Protection — block เฉพาะ IP ที่ยิง request เกินจริงๆ
   ddosProtection: {
-    maxRequests: 100, // สูงสุด 100 คำขอต่อ 15 นาที
-    burstLimit: 20,   // สูงสุด 20 คำขอต่อวินาที
-    autoBlockDuration: 30 * 60 * 1000, // บล็อก 30 นาที
+    maxRequests: 300, // สูงสุด 300 คำขอต่อ 15 นาที (visitor ปกติไม่ถึง)
+    burstLimit: 30,   // สูงสุด 30 คำขอต่อวินาที
+    autoBlockDuration: 30 * 60 * 1000, // บล็อก 30 นาที เฉพาะ IP นั้น
     whitelist: ['127.0.0.1', '::1', 'localhost'] // อนุญาต localhost
   },
   
-  // Rate Limiter
+  // Rate Limiter — ปรับให้ visitor ปกติไม่โดน
   rateLimiter: {
     slidingWindowMs: 15 * 60 * 1000, // 15 นาที
-    maxRequests: 100,
-    tokenCapacity: 20,
-    refillRate: 1,
+    maxRequests: 300, // 300 req per 15 min
+    tokenCapacity: 30,
+    refillRate: 2,
     enableAdaptive: true
   },
   
-  // IP Firewall
+  // IP Firewall — block เฉพาะ IP ที่ทำผิด ไม่ใช่ทุกคน
   ipFirewall: {
-    autoBlockThreshold: 100,
+    autoBlockThreshold: 300, // ต้อง hit 300+ req ใน 5 min ก่อน auto-block
     autoBlockDuration: 30 * 60 * 1000,
     geoBlocking: {
       enable: false, // ปิด geo blocking ไว้ก่อน

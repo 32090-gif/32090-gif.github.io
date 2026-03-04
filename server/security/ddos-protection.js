@@ -191,42 +191,37 @@ class DDoSProtection {
     
     let botScore = 0;
 
-    // Check user agent patterns
+    // เฉพาะ bot/scraper/automation จริงๆ — ไม่ block curl/python/node/wget
+    // เพราะ visitor ปกติ หรือ API client ก็ใช้ได้
     const botPatterns = [
-      /bot/i, /crawler/i, /spider/i, /scraper/i,
-      /curl/i, /wget/i, /python/i, /java/i,
-      /go-http/i, /node/i, /ruby/i, /php/i
+      /\bbot\b/i, /\bcrawler\b/i, /\bspider\b/i, /\bscraper\b/i,
+      /\bselenium\b/i, /\bphantom\b/i, /\bheadless\b/i, /\bchromeless\b/i,
+      /\blwp\b/i, /\bmechanize\b/i
     ];
 
     botPatterns.forEach(pattern => {
       if (pattern.test(userAgent)) botScore += 30;
     });
 
-    // Check for missing/invalid headers
-    if (!userAgent || userAgent.length < 10) botScore += 20;
-    if (!req.headers.accept) botScore += 15;
-    if (!req.headers['accept-language']) botScore += 10;
+    // Empty user agent เท่านั้นที่น่าสงสัย
+    if (!userAgent || userAgent.length < 5) botScore += 20;
 
-    // Check request patterns
+    // Missing accept-language เป็นสัญญาณเล็กน้อย
+    if (!req.headers['accept-language']) botScore += 8;
+
+    // Check request patterns — เฉพาะ high-volume จริงๆ
     if (data) {
-      // Too many different endpoints
-      if (data.endpoints.size > 20) botScore += 25;
+      // Too many different endpoints in short time
+      if (data.endpoints.size > 50) botScore += 25;
       
-      // Too fast requests
+      // ยิง request เร็วมากผิดปกติ (> 100 req/min)
       const recentRequests = data.requests.filter(time => 
-        Date.now() - time < 60000 // 1 minute
+        Date.now() - time < 60000
       );
-      if (recentRequests.length > 60) botScore += 20;
+      if (recentRequests.length > 100) botScore += 20;
     }
 
-    // Check for suspicious query parameters
-    const suspiciousParams = ['callback', 'jsonp', '_callback', 'format'];
-    const query = req.query || {};
-    Object.keys(query).forEach(param => {
-      if (suspiciousParams.includes(param.toLowerCase())) botScore += 15;
-    });
-
-    return botScore >= 50; // Threshold for bot detection
+    return botScore >= 50; // Threshold สูงขึ้นเพื่อลด false positive
   }
 
   checkSuspiciousPatterns(req, ip) {
