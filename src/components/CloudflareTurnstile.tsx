@@ -1,170 +1,106 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, CheckCircle, XCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Shield, XCircle, Loader2 } from 'lucide-react';
+
+const TURNSTILE_SITE_KEY = '0x4AAAAAACf9_YA-uWiPDCnS';
 
 const CloudflareTurnstile = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [isVerifyingToken, setIsVerifyingToken] = useState(false);
   const turnstileRef = useRef<HTMLDivElement>(null);
-
-  // ฟังก์ชันตรวจสอบ token กับ server
-  const verifyToken = async (token: string) => {
-    setIsVerifyingToken(true);
-    setError(null);
-    
-    try {
-      const response = await fetch('/api/verify-turnstile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        console.log('Turnstile verification successful:', data);
-        setIsVerified(true);
-        setIsLoading(false);
-        setError(null);
-      } else {
-        throw new Error(data.message || 'Verification failed');
-      }
-    } catch (error) {
-      console.error('Token verification error:', error);
-      setError('การยืนยันตัวตนล้มเหลว กรุณาลองใหม่');
-      setIsLoading(false);
-      
-      // รีเซ็ต turnstile
-      if (window.turnstile && turnstileRef.current) {
-        window.turnstile.reset();
-      }
-    } finally {
-      setIsVerifyingToken(false);
-    }
-  };
+  const widgetIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // โหลด Cloudflare Turnstile script
-    const loadTurnstile = () => {
-      // ตรวจสอบว่ามี script อยู่แล้วหรือไม่
+    let isMounted = true;
+
+    const initTurnstile = () => {
+      if (!turnstileRef.current || !isMounted) return;
+
+      // ล้าง widget เก่าถ้ามี
+      if (widgetIdRef.current && window.turnstile) {
+        try { window.turnstile.remove(widgetIdRef.current); } catch (_) {}
+        widgetIdRef.current = null;
+      }
+      turnstileRef.current.innerHTML = '';
+
+      try {
+        const id = window.turnstile!.render(turnstileRef.current, {
+          sitekey: TURNSTILE_SITE_KEY,
+          theme: 'light',
+          language: 'th',
+          callback: (token: string) => {
+            console.log('Turnstile callback token received:', token.slice(0, 20) + '...');
+            if (isMounted) {
+              setIsVerified(true);
+              setIsLoading(false);
+              setError(null);
+            }
+          },
+          'error-callback': () => {
+            if (isMounted) {
+              setError('การยืนยันตัวตนล้มเหลว กรุณาลองใหม่');
+              setIsLoading(false);
+            }
+          },
+          'expired-callback': () => {
+            if (isMounted) {
+              setIsVerified(false);
+              setError('หมดเวลายืนยันตัวตน กรุณายืนยันใหม่');
+            }
+          },
+        });
+        widgetIdRef.current = id;
+        if (isMounted) setIsLoading(false);
+      } catch (err) {
+        console.error('Error rendering Turnstile widget:', err);
+        if (isMounted) {
+          setError('ไม่สามารถสร้างวิดเจ็ตยืนยันตัวตนได้');
+          setIsLoading(false);
+        }
+      }
+    };
+
+    const loadScript = () => {
+      // ถ้า turnstile โหลดแล้ว init เลย
       if (window.turnstile) {
         initTurnstile();
         return;
       }
 
-      // สร้าง script element
+      // ตรวจว่า script มีอยู่แล้ว
+      const existing = document.querySelector(
+        'script[src*="challenges.cloudflare.com/turnstile"]'
+      ) as HTMLScriptElement | null;
+
+      if (existing) {
+        existing.addEventListener('load', () => { if (isMounted) initTurnstile(); });
+        return;
+      }
+
       const script = document.createElement('script');
       script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
       script.async = true;
       script.defer = true;
-      
       script.onload = () => {
-        setTimeout(() => {
-          if (window.turnstile) {
-            initTurnstile();
-          } else {
-            console.error('Turnstile not available after script load');
-            setError('ไม่สามารถโหลดระบบยืนยันตัวตนได้');
-            setIsLoading(false);
-          }
-        }, 100);
+        setTimeout(() => { if (isMounted) initTurnstile(); }, 100);
       };
-      
-      script.onerror = (error) => {
-        console.error('Failed to load Turnstile script:', error);
-        setError('ไม่สามารถเชื่อมต่อกับ Cloudflare ได้');
-        setIsLoading(false);
+      script.onerror = () => {
+        if (isMounted) {
+          setError('ไม่สามารถเชื่อมต่อกับ Cloudflare ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+          setIsLoading(false);
+        }
       };
-      
       document.head.appendChild(script);
     };
 
-    const initTurnstile = () => {
-      console.log('Initializing Turnstile widget...');
-      
-      if (!turnstileRef.current) {
-        console.error('Turnstile ref not found');
-        return;
-      }
-
-      // ล้าง turnstile เก่าถ้ามี
-      if (turnstileRef.current.firstChild) {
-        turnstileRef.current.innerHTML = '';
-      }
-
-      // สร้าง turnstile widget
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // ตรวจสอบว่าอยู่บน localhost หรือไม่
-        const isLocalhost = window.location.hostname === 'localhost' || 
-                          window.location.hostname === '127.0.0.1' ||
-                          window.location.hostname.includes('192.168.') ||
-                          window.location.hostname.includes('169.254.');
-
-        if (isLocalhost) {
-          console.log('Localhost detected - skipping Turnstile');
-          setIsVerified(true);
-          setIsLoading(false);
-          return;
-        }
-
-        // ตรวจสอบว่ามี Cloudflare headers หรือไม่
-        const checkCloudflare = async () => {
-          try {
-            const response = await fetch('/api/cloudflare-status');
-            const data = await response.json();
-            
-            if (!data.success) {
-              console.log('Not connected to Cloudflare - skipping Turnstile');
-              setError('ไม่ได้เชื่อมต่อผ่าน Cloudflare');
-              setIsLoading(false);
-              return;
-            }
-            
-            console.log('Cloudflare connected - loading Turnstile');
-            // สร้าง turnstile widget
-            const widgetId = window.turnstile.render(turnstileRef.current, {
-              sitekey: '0x4AAAAAACf9_YA-uWiPDCnS',
-              theme: 'light',
-              language: 'th',
-              callback: verifyToken,
-              'error-callback': setError,
-              'expired-callback': () => setIsVerified(false)
-            });
-            
-            console.log('Turnstile widget created:', widgetId);
-            setIsLoading(false);
-          } catch (error) {
-            console.error('Cloudflare check failed:', error);
-            setError('ไม่สามารถตรวจสอบ Cloudflare ได้');
-            setIsLoading(false);
-          }
-        };
-
-        checkCloudflare();
-      } catch (error) {
-        console.error('Error creating Turnstile widget:', error);
-        setError('ไม่สามารถสร้างวิดเจ็ตยืนยันตัวตนได้');
-        setIsLoading(false);
-      }
-    };
-
-    loadTurnstile();
+    loadScript();
 
     return () => {
-      // Cleanup
-      if (window.turnstile && turnstileRef.current) {
-        try {
-          window.turnstile.remove(turnstileRef.current);
-        } catch (err) {
-          console.error('Error removing Turnstile:', err);
-        }
+      isMounted = false;
+      if (widgetIdRef.current && window.turnstile) {
+        try { window.turnstile.remove(widgetIdRef.current); } catch (_) {}
+        widgetIdRef.current = null;
       }
     };
   }, [retryCount]);
@@ -174,12 +110,6 @@ const CloudflareTurnstile = () => {
     setIsVerified(false);
     setIsLoading(true);
     setError(null);
-  };
-
-  const handleSkip = () => {
-    if (window.confirm('คุณแน่ใจหรือไม่ว่าต้องข้ามการยืนยันตัวตน? (ไม่แนะนำสำหรับการใช้งานจริง)')) {
-      setIsVerified(true);
-    }
   };
 
   if (isVerified) {
@@ -240,35 +170,18 @@ const CloudflareTurnstile = () => {
             {isLoading && (
               <div className="flex items-center justify-center gap-2 text-gray-600">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">กำลังโหลด...</span>
+                <span className="text-sm">กำลังโหลดวิดเจ็ตยืนยันตัวตน...</span>
               </div>
             )}
 
-            {isVerifyingToken && (
-              <div className="flex items-center justify-center gap-2 text-blue-600">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">กำลังยืนยันตัวตน...</span>
-              </div>
-            )}
-
-            {!isLoading && !isVerified && !isVerifyingToken && (
-              <>
-                {error && (
-                  <div className="text-center space-y-3">
-                    <p className="text-sm text-red-600">{error}</p>
-                    <p className="text-xs text-gray-500">
-                      แนะนำ: ตั้งค่า Cloudflare Tunnel หรือ Cloudflare Proxy
-                    </p>
-                  </div>
-                )}
-                
-                <button
-                  onClick={handleSkip}
-                  className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-all duration-200"
-                >
-                  ดำเนินการต่อ (ไม่มีการป้องกัน)
-                </button>
-              </>
+            {!isLoading && !isVerified && error && (
+              <button
+                onClick={handleRetry}
+                className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-600 transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <Loader2 className="w-4 h-4" />
+                ลองใหม่อีกครั้ง
+              </button>
             )}
           </div>
 
@@ -301,8 +214,8 @@ const CloudflareTurnstile = () => {
 declare global {
   interface Window {
     turnstile?: {
-      render: (container: HTMLElement, params: any) => string;
-      remove: (container: HTMLElement) => void;
+      render: (container: HTMLElement | null, params: Record<string, unknown>) => string;
+      remove: (widgetIdOrContainer: string | HTMLElement) => void;
       reset: (widgetId?: string) => void;
       getResponse: (widgetId: string) => string;
     };
