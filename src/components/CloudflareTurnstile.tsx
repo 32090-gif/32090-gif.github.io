@@ -137,7 +137,7 @@ const CloudflareTurnstile = () => {
           </h1>
           
           <p className="text-gray-600">
-            กรุณายืนยันตัวตนเพื่อความปลอดภัยของระบบ
+            กรุณายืนยันตัวตนเพื่อความปลอดภัย
           </p>
 
           {/* Turnstile Widget Container */}
@@ -194,7 +194,7 @@ const CloudflareTurnstile = () => {
                   การป้องกันอัตโนมัติ
                 </p>
                 <p className="text-xs text-blue-700 mt-1">
-                  ระบบนี้ช่วยป้องกันบอทและการโจมตีอัตโนมัติเพื่อความปลอดภัยของคุณ
+                  ระบบนี้ช่วยป้องกันการโจมตีเพื่อความปลอดภัยของคุณ
                 </p>
               </div>
             </div>
@@ -202,7 +202,7 @@ const CloudflareTurnstile = () => {
 
           {/* Footer */}
           <div className="text-xs text-gray-500">
-            Secured by Cloudflare Turnstile
+            Secured by Cloudflare
           </div>
         </div>
       </div>
